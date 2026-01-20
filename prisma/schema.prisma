@@ -1,0 +1,44 @@
+// Bu fayl ma'lumotlar bazasi strukturasini belgilaydi
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = "postgresql://postgres:otash2002@localhost:5432/fastfood_db?schema=public"
+}
+
+model User {
+  id         Int      @id @default(autoincrement())
+  telegramId String   @unique
+  phone      String?
+  name       String?
+  createdAt  DateTime @default(now())
+}
+
+// 1. Kategoriyalar jadvali (PIZZA, BURGER va h.k.)
+model Category {
+  id       Int       @id @default(autoincrement())
+  name     String    @unique
+  products Product[]
+}
+
+// 2. Taomlar jadvali (Pepperoni, Lavash va h.k.)
+model Product {
+  id          Int      @id @default(autoincrement())
+  name        String
+  price       Int
+  categoryId  Int
+  category    Category @relation(fields: [categoryId], references: [id])
+}
+
+// 3. Buyurtmalar jadvali (Sizga keladigan zakazlar)
+model Order {
+  id         Int      @id @default(autoincrement())
+  userPhone  String   // Mijozning telfon raqami
+  items      String   // Zakaz tarkibi: "2x Burger, 1x Cola"
+  totalPrice Int      // Umumiy summa
+  status     String   @default("YANGI") // YANGI, YETKAZILDI, BEKOR
+  createdAt  DateTime @default(now())
+}
