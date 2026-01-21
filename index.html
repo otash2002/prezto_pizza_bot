@@ -2,31 +2,111 @@
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Presto Pizza</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { --main: #ffcc00; --bg: #000; --card: #fff; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; margin: 0; padding-bottom: 120px; -webkit-tap-highlight-color: transparent; }
-        .container { padding: 12px; }
-        .category-title { color: var(--main); margin: 25px 0 12px; border-left: 4px solid var(--main); padding-left: 10px; text-transform: uppercase; font-weight: bold; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .card { background: var(--card); border-radius: 15px; padding: 10px; color: #000; display: flex; flex-direction: column; justify-content: space-between; min-height: 160px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
-        .product-img { font-size: 40px; text-align: right; line-height: 1; margin-bottom: 5px; }
-        .product-name { font-weight: bold; font-size: 14px; margin: 5px 0; height: 35px; overflow: hidden; }
-        .product-price { color: #d35400; font-weight: bold; font-size: 14px; margin-bottom: 10px; }
-        .controls { display: flex; align-items: center; justify-content: space-between; background: #f0f0f0; border-radius: 10px; padding: 4px; }
-        .btn { border: none; width: 35px; height: 35px; border-radius: 8px; font-size: 22px; cursor: pointer; background: var(--main); font-weight: bold; display: flex; align-items: center; justify-content: center; }
-        .count { font-weight: bold; font-size: 16px; min-width: 25px; text-align: center; color: #000; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root { 
+            --main: #ffcc00; 
+            --bg: #000; 
+            --card: #fff; 
+            --text: #000;
+        }
+        body { 
+            font-family: 'Segoe UI', -apple-system, sans-serif; 
+            background: var(--bg); 
+            color: white; 
+            padding: 0 12px 140px 12px;
+            -webkit-tap-highlight-color: transparent;
+            overflow-x: hidden;
+        }
+        .header {
+            position: sticky;
+            top: 0;
+            background: var(--bg);
+            padding: 15px 0;
+            z-index: 100;
+            border-bottom: 2px solid var(--main);
+            margin-bottom: 20px;
+        }
+        .header h1 {
+            color: var(--main);
+            font-size: 24px;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        .category-title { 
+            color: var(--main); 
+            margin: 25px 0 15px; 
+            border-left: 4px solid var(--main); 
+            padding-left: 12px; 
+            text-transform: uppercase; 
+            font-weight: bold; 
+            font-size: 18px;
+        }
+        .grid { 
+            display: grid; 
+            grid-template-columns: repeat(2, 1fr); 
+            gap: 12px; 
+            margin-bottom: 20px;
+        }
+        .card { 
+            background: var(--card); 
+            border-radius: 16px; 
+            padding: 12px; 
+            color: var(--text); 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: space-between; 
+            min-height: 170px;
+            box-shadow: 0 4px 15px rgba(255, 204, 0, 0.2);
+            transition: transform 0.1s;
+        }
+        .card:active { transform: scale(0.97); }
+        .product-img { font-size: 45px; text-align: right; line-height: 1; margin-bottom: 8px; }
+        .product-name { font-weight: 700; font-size: 15px; margin: 8px 0; min-height: 38px; display: flex; align-items: center; line-height: 1.3; }
+        .product-price { color: #d35400; font-weight: bold; font-size: 14px; margin-bottom: 12px; }
+        .controls { 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+            background: #f5f5f5; 
+            border-radius: 12px; 
+            padding: 6px;
+        }
+        .btn { 
+            border: none; 
+            width: 35px; 
+            height: 35px; 
+            border-radius: 10px; 
+            font-size: 24px; 
+            cursor: pointer; 
+            background: var(--main); 
+            color: #000;
+            font-weight: bold; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+        }
+        .count { font-weight: bold; font-size: 18px; min-width: 30px; text-align: center; color: var(--text); }
+        .loading { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); color: var(--main); font-size: 18px; }
+        .has-items { border: 2px solid var(--main); }
     </style>
 </head>
 <body>
-    <div class="container" id="menu-list"></div>
+    <div class="header">
+        <h1>🍕 Presto Pizza</h1>
+    </div>
+    
+    <div id="menu-list">
+        <div class="loading">⏳ Yuklanmoqda...</div>
+    </div>
 
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
-        // Asosiy tugma rangini sozlash
         tg.MainButton.setParams({ color: '#ffcc00', text_color: '#000000' });
 
         let cart = {};
@@ -70,11 +150,21 @@
         function render() {
             const list = document.getElementById('menu-list');
             list.innerHTML = '';
+            
             for (let cat in menuData) {
-                let html = `<div class="category-title">| ${cat}</div><div class="grid">`;
+                const title = document.createElement('div');
+                title.className = 'category-title';
+                title.textContent = cat;
+                list.appendChild(title);
+
+                const grid = document.createElement('div');
+                grid.className = 'grid';
+
                 menuData[cat].forEach(p => {
-                    html += `
-                    <div class="card">
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    card.id = `card-${p.id}`;
+                    card.innerHTML = `
                         <div class="product-img">${p.img}</div>
                         <div class="product-name">${p.name}</div>
                         <div class="product-price">${p.price.toLocaleString()} UZS</div>
@@ -83,54 +173,57 @@
                             <span class="count" id="q-${p.id}">0</span>
                             <button class="btn" onclick="updateCount('${p.id}', '${p.name}', ${p.price}, 1)">+</button>
                         </div>
-                    </div>`;
+                    `;
+                    grid.appendChild(card);
                 });
-                list.innerHTML += html + `</div>`;
+                list.appendChild(grid);
             }
         }
 
         function updateCount(id, name, price, delta) {
-            if (!cart[id]) {
-                cart[id] = { name: name, price: price, quantity: 0 };
-            }
+            if (!cart[id]) cart[id] = { name, price, quantity: 0 };
             
             cart[id].quantity += delta;
-            
-            if (cart[id].quantity <= 0) {
-                cart[id].quantity = 0;
-            }
+            if (cart[id].quantity < 0) cart[id].quantity = 0;
 
-            // UI ni darhol yangilash
             document.getElementById(`q-${id}`).innerText = cart[id].quantity;
             
-            // Hisoblashni chaqirish
+            const card = document.getElementById(`card-${id}`);
+            if (cart[id].quantity > 0) card.classList.add('has-items');
+            else card.classList.remove('has-items');
+
             calculateTotal();
         }
 
         function calculateTotal() {
             let total = 0;
+            let items = 0;
             for (let key in cart) {
                 total += cart[key].price * cart[key].quantity;
+                items += cart[key].quantity;
             }
 
             if (total > 0) {
-                tg.MainButton.setText(`BUYURTMA BERISH: ${total.toLocaleString()} UZS`);
+                tg.MainButton.setText(`BUYURTMA BERISH: ${total.toLocaleString()} UZS (${items} ta)`);
                 tg.MainButton.show();
             } else {
                 tg.MainButton.hide();
             }
         }
 
-        // TUGMA BOSILGANDA MA'LUMOTNI YUBORISH
         tg.onEvent('mainButtonClicked', () => {
-            const finalOrder = Object.values(cart).filter(item => item.quantity > 0);
-            if (finalOrder.length > 0) {
-                // Ma'lumotni JSON string qilib botga yuboramiz
-                tg.sendData(JSON.stringify(finalOrder));
-            }
+            const order = Object.values(cart).filter(i => i.quantity > 0);
+            tg.showConfirm("Buyurtmani tasdiqlaysizmi?", (confirm) => {
+                if(confirm) {
+                    tg.sendData(JSON.stringify(order));
+                }
+            });
         });
 
-        render();
+        window.onload = () => {
+            render();
+            tg.ready();
+        };
     </script>
 </body>
 </html>

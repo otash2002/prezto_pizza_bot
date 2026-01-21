@@ -14,7 +14,7 @@ export class BotService implements OnModuleInit {
     }));
 
     // MINI APP LINKINI SHU YERGA QO'YING
-    const WEB_APP_URL = "https://otash2002.github.io/prezto_pizza_bot/?v=2";
+    const WEB_APP_URL = "https://otash2002.github.io/prezto_pizza_bot/?v=5";
 
     const mainMenu = new Keyboard()
       .webApp("🍴 Menyu", WEB_APP_URL).text("🛒 Savat").row() // Mini App tugmasi qo'shildi
