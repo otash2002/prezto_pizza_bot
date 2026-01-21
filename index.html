@@ -6,48 +6,124 @@
     <title>Presto Pizza Menu</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { --main-color: #ffcc00; --bg-color: #f8f9fa; }
-        body { font-family: sans-serif; background: var(--bg-color); margin: 0; padding-bottom: 80px; }
-        .header { background: white; padding: 15px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 100; }
-        .product-card { background: white; border-radius: 15px; display: flex; padding: 12px; margin: 15px; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-        .product-img { width: 80px; height: 80px; border-radius: 12px; object-fit: cover; }
-        .product-info { flex: 1; padding: 0 15px; }
-        .product-name { font-weight: bold; font-size: 16px; }
-        .product-price { color: #888; font-size: 14px; margin-top: 5px; }
-        .add-btn { background: var(--main-color); border: none; width: 35px; height: 35px; border-radius: 10px; font-size: 20px; cursor: pointer; }
+        :root { --main-color: #ffcc00; --bg-color: #f1f2f6; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg-color); margin: 0; padding-bottom: 100px; }
+        .header { background: #000; color: #fff; padding: 15px; position: sticky; top: 0; z-index: 100; text-align: center; }
+        .category-section { padding: 10px; }
+        .category-title { font-size: 22px; font-weight: bold; text-transform: uppercase; border-left: 5px solid var(--main-color); padding-left: 10px; margin: 20px 0 10px; }
+        .products-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .product-card { background: white; border-radius: 15px; padding: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); display: flex; flex-direction: column; justify-content: space-between; }
+        .product-name { font-weight: bold; font-size: 14px; margin-bottom: 5px; min-height: 35px; }
+        .product-price { color: #e67e22; font-weight: bold; font-size: 15px; margin-bottom: 10px; }
+        .controls { display: flex; align-items: center; justify-content: space-between; background: #f8f9fa; border-radius: 8px; padding: 4px; }
+        .btn { border: none; width: 28px; height: 28px; border-radius: 6px; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .plus { background: var(--main-color); }
+        .minus { background: #dee2e6; }
+        .count { font-weight: bold; }
     </style>
 </head>
 <body>
-    <div class="header"><h2>🍕 Presto Pizza</h2></div>
-    <div id="menu">
-        <div class="product-card">
-            <img src="https://images.unsplash.com/photo-1628840042765-356cda07504e?w=200" class="product-img">
-            <div class="product-info">
-                <div class="product-name">Pepperoni</div>
-                <div class="product-price">65,000 so'm</div>
-            </div>
-            <button class="add-btn" onclick="addToCart('Pepperoni', 65000)">+</button>
-        </div>
-        <div class="product-card">
-            <img src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=200" class="product-img">
-            <div class="product-info">
-                <div class="product-name">Cheeseburger</div>
-                <div class="product-price">35,000 so'm</div>
-            </div>
-            <button class="add-btn" onclick="addToCart('Cheeseburger', 35000)">+</button>
+    <div class="header"><h1>PRESTO PIZZA</h1></div>
+
+    <div class="category-section" id="main-menu">
+        <div class="category-title">Pizza</div>
+        <div class="products-grid">
+            <script>
+                const data = {
+                    "Pizza": [
+                        {id: "p1", name: "Pepperoni", price: 70000},
+                        {id: "p2", name: "Pollo", price: 75000},
+                        {id: "p3", name: "Vetchina", price: 75000},
+                        {id: "p4", name: "Carnoso", price: 85000},
+                        {id: "p5", name: "4 Type", price: 90000},
+                        {id: "p6", name: "Presto Pizza", price: 100000}
+                    ],
+                    "Sandwich": [
+                        {id: "s1", name: "Indeyka", price: 30000},
+                        {id: "s2", name: "Carnoso", price: 35000},
+                        {id: "s3", name: "Pollo", price: 30000}
+                    ],
+                    "Burger": [
+                        {id: "b1", name: "Oddiy Burger", price: 15000},
+                        {id: "b2", name: "Chizburger", price: 17000},
+                        {id: "b3", name: "Chicken Burger", price: 20000},
+                        {id: "b4", name: "BBQ Burger", price: 25000}
+                    ],
+                    "Hot-Dog": [
+                        {id: "h1", name: "Oddiy", price: 10000},
+                        {id: "h2", name: "Canada", price: 13000},
+                        {id: "h3", name: "Canada 2x", price: 15000},
+                        {id: "h4", name: "Chicken", price: 18000},
+                        {id: "h5", name: "Go'shtli", price: 20000},
+                        {id: "h6", name: "Qazili", price: 25000}
+                    ],
+                    "Lavash": [
+                        {id: "l1", name: "Lavash", price: 25000},
+                        {id: "l2", name: "Lavash Sirli", price: 28000},
+                        {id: "l3", name: "Tandir Lavash", price: 30000},
+                        {id: "l4", name: "Tandir Sirli", price: 35000}
+                    ],
+                    "Doner": [
+                        {id: "d1", name: "Doner", price: 25000},
+                        {id: "d2", name: "Non Kabob", price: 35000},
+                        {id: "d3", name: "KFC 1 pors", price: 25000},
+                        {id: "d4", name: "Fries", price: 15000}
+                    ]
+                };
+
+                let menuHtml = '';
+                for (let cat in data) {
+                    menuHtml += `<div class="category-title">${cat}</div><div class="products-grid">`;
+                    data[cat].forEach(p => {
+                        menuHtml += `
+                            <div class="product-card">
+                                <div class="product-name">${p.name}</div>
+                                <div class="product-price">${p.price.toLocaleString()} UZS</div>
+                                <div class="controls">
+                                    <button class="btn minus" onclick="update('${p.id}', '${p.name}', ${p.price}, -1)">-</button>
+                                    <span class="count" id="q-${p.id}">0</span>
+                                    <button class="btn plus" onclick="update('${p.id}', '${p.name}', ${p.price}, 1)">+</button>
+                                </div>
+                            </div>`;
+                    });
+                    menuHtml += `</div>`;
+                }
+                document.write(menuHtml);
+            </script>
         </div>
     </div>
+
     <script>
         let tg = window.Telegram.WebApp;
         tg.expand();
-        let cart = [];
-        function addToCart(name, price) {
-            cart.push({ name, price });
-            tg.MainButton.setText("BUYURTMA BERISH: " + cart.length + " ta");
-            tg.MainButton.show();
+        let cart = {};
+
+        function update(id, name, price, delta) {
+            if (!cart[id]) cart[id] = { name, price, count: 0 };
+            cart[id].count += delta;
+            if (cart[id].count < 0) cart[id].count = 0;
+            
+            document.getElementById(`q-${id}`).innerText = cart[id].count;
+            
+            let total = 0;
+            for (let key in cart) total += cart[key].count * cart[key].price;
+
+            if (total > 0) {
+                tg.MainButton.setText(`BUYURTMA BERISH: ${total.toLocaleString()} UZS`);
+                tg.MainButton.show();
+            } else {
+                tg.MainButton.hide();
+            }
         }
+
         tg.onEvent('mainButtonClicked', function() {
-            tg.sendData(JSON.stringify(cart));
+            let order = [];
+            for (let key in cart) {
+                if (cart[key].count > 0) {
+                    for(let i=0; i<cart[key].count; i++) order.push({ name: cart[key].name, price: cart[key].price });
+                }
+            }
+            tg.sendData(JSON.stringify(order));
         });
     </script>
 </body>

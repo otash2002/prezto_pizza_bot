@@ -13,8 +13,11 @@ export class BotService implements OnModuleInit {
       initial: () => ({ cart: [] as any[], phone: '', orderType: '', location: null as any }) 
     }));
 
+    // MINI APP LINKINI SHU YERGA QO'YING
+    const WEB_APP_URL = "https://otash2002.github.io/prezto_pizza_bot/?v=2";
+
     const mainMenu = new Keyboard()
-      .text("🍴 Menyu").text("🛒 Savat").row()
+      .webApp("🍴 Menyu", WEB_APP_URL).text("🛒 Savat").row() // Mini App tugmasi qo'shildi
       .text("🔄 Qayta boshlash").text("📞 Aloqa")
       .resized().persistent();
 
@@ -35,7 +38,9 @@ export class BotService implements OnModuleInit {
         const typeKeyboard = new InlineKeyboard()
           .text("🚖 Yetkazib berish", "type_delivery")
           .text("🛍 Olib ketish", "type_pickup");
-        await ctx.reply(`🍕 **Presto Pizza** botiga xush kelibsiz, ${user.name}!\n\nIltimos, xizmat turini tanlang:`, { reply_markup: typeKeyboard });
+        await ctx.reply(`🍕 **Presto Pizza** botiga xush kelibsiz, ${user.name}!\n\nIltimos, xizmat turini tanlang:`, { 
+            reply_markup: { ...typeKeyboard, ...mainMenu } 
+        });
       } else {
         await ctx.reply(`🍕 **Presto Pizza** botiga xush kelibsiz!\nRo'yxatdan o'tish uchun raqamingizni yuboring:`, {
           reply_markup: new Keyboard().requestContact("📞 Raqamni yuborish").resized().oneTime(),
@@ -73,7 +78,7 @@ export class BotService implements OnModuleInit {
     this.bot.callbackQuery('type_pickup', async (ctx: any) => {
       ctx.session.orderType = 'Olib ketish';
       ctx.session.location = null;
-      await ctx.editMessageText("🛍 **Olib ketish tanlandi.** \nManzil: Chartak sh., Alisher Navoiy ko'chasi.");
+      await ctx.reply("🛍 **Olib ketish tanlandi.** \nManzil: Chartak sh., Alisher Navoiy ko'chasi.", { reply_markup: mainMenu });
       await this.showCategories(ctx, false);
     });
 
@@ -84,7 +89,33 @@ export class BotService implements OnModuleInit {
       await this.showCategories(ctx, false);
     });
 
-    // 5. ASOSIY LOGIKA
+    // 5. MINI APP (WEB APP) DAN BUYURTMA QABUL QILISH
+    this.bot.on('message:web_app_data', async (ctx: any) => {
+      try {
+        const cart = JSON.parse(ctx.message.web_app_data.data);
+        let summary = "🚀 **Mini App-dan yangi buyurtma!**\n\n";
+        let total = 0;
+
+        cart.forEach((item: any) => {
+          summary += `▫️ ${item.name} - ${item.price.toLocaleString()} so'm\n`;
+          total += item.price;
+        });
+
+        summary += `\n💰 **Jami: ${total.toLocaleString()} so'm**`;
+        summary += `\n👤 **Mijoz:** ${ctx.from.first_name}\n📞 **Tel:** ${ctx.session.phone || 'Noma\'lum'}`;
+
+        await ctx.reply("✅ Rahmat! Buyurtmangiz qabul qilindi. Operatorlarimiz tez orada bog'lanamiz!");
+        
+        // Adminga yuborish
+        await this.bot.api.sendMessage(this.ADMIN_ID, summary, {
+          reply_markup: new InlineKeyboard().text("👨‍🍳 Qabul qildim", `accept_${ctx.from.id}`)
+        });
+      } catch (e) {
+        await ctx.reply("❌ Buyurtma ma'lumotlarini qabul qilishda xatolik.");
+      }
+    });
+
+    // 6. ASOSIY LOGIKA (TEXT)
     this.bot.on('message:text', async (ctx: any) => {
       if (ctx.message.text === "🍴 Menyu") await this.showCategories(ctx, false);
       else if (ctx.message.text === "🛒 Savat") await this.showCart(ctx);
@@ -92,7 +123,7 @@ export class BotService implements OnModuleInit {
       else if (ctx.message.text === "📞 Aloqa") await ctx.reply("☎️ Admin: +998 94 677 75 90");
     });
 
-    // 6. ADMINGA BUYURTMA (LOKATSIYA BILAN)
+    // 7. BUYURTMANI TASDIQLASH (MATNLI BOT UCHUN)
     this.bot.callbackQuery('confirm_order', async (ctx: any) => {
       if (!isWorkingTime()) return ctx.reply("⚠️ Hozir ish vaqti emas.");
       if (ctx.session.cart.length === 0) return ctx.answerCallbackQuery("Savat bo'sh!");
@@ -106,12 +137,10 @@ export class BotService implements OnModuleInit {
                        `🛒 **Tarkibi:**\n${orderInfo}\n` +
                        `💰 **Jami:** ${total.toLocaleString()} so'm`;
 
-      // Adminga matnni yuborish
       await this.bot.api.sendMessage(this.ADMIN_ID, adminMsg, {
         reply_markup: new InlineKeyboard().text("👨‍🍳 Qabul qildim", `accept_${ctx.from.id}`)
       });
 
-      // Agar lokatsiya bo'lsa, adminga xaritani yuborish
       if (ctx.session.location) {
         await this.bot.api.sendLocation(this.ADMIN_ID, ctx.session.location.latitude, ctx.session.location.longitude);
       }
@@ -148,21 +177,26 @@ export class BotService implements OnModuleInit {
   async showCategories(ctx: any, edit: boolean = false) {
     const categories = await this.prisma.category.findMany();
     const keyboard = new InlineKeyboard();
-   const emojis: any = { 
+    const emojis: any = { 
       'pizza': '🍕', 'pitsa': '🍕', 
       'burger': '🍔', 
       'lavash': '🌯', 
       'ichimlik': '🥤', 
       'doner': '🥙', 
       'hot-dog': '🌭', 'hotdog': '🌭',
-      'sandwich': '🥪', 'sendvich': '🥪' // <-- SANDWICH QO'SHILDI
+      'sandwich': '🥪', 'sendvich': '🥪' 
     };
     categories.forEach(c => {
       const emoji = emojis[c.name.toLowerCase()] || '🍴';
       keyboard.text(`${emoji} ${c.name}`, `cat_${c.id}`).row();
     });
-    if (edit && ctx.callbackQuery) await ctx.editMessageText("🍽 **Kategoriyani tanlang:**", { reply_markup: keyboard });
-    else await ctx.reply("🍽 **Kategoriyani tanlang:**", { reply_markup: keyboard });
+
+    const text = "🍽 **Kategoriyani tanlang:**";
+    if (edit && ctx.callbackQuery) {
+      await ctx.editMessageText(text, { reply_markup: keyboard });
+    } else {
+      await ctx.reply(text, { reply_markup: keyboard });
+    }
   }
 
   async showCart(ctx: any) {
