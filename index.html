@@ -7,17 +7,17 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root { --main: #ffcc00; --bg: #000; --card: #fff; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; margin: 0; padding-bottom: 120px; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; margin: 0; padding-bottom: 120px; -webkit-tap-highlight-color: transparent; }
         .container { padding: 12px; }
-        .category-title { color: var(--main); margin: 25px 0 10px; border-left: 4px solid var(--main); padding-left: 10px; text-transform: uppercase; font-weight: bold; }
+        .category-title { color: var(--main); margin: 25px 0 12px; border-left: 4px solid var(--main); padding-left: 10px; text-transform: uppercase; font-weight: bold; }
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .card { background: var(--card); border-radius: 15px; padding: 10px; color: #000; position: relative; display: flex; flex-direction: column; justify-content: space-between; min-height: 160px; }
-        .product-img { font-size: 40px; text-align: right; line-height: 1; }
+        .card { background: var(--card); border-radius: 15px; padding: 10px; color: #000; display: flex; flex-direction: column; justify-content: space-between; min-height: 160px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+        .product-img { font-size: 40px; text-align: right; line-height: 1; margin-bottom: 5px; }
         .product-name { font-weight: bold; font-size: 14px; margin: 5px 0; height: 35px; overflow: hidden; }
         .product-price { color: #d35400; font-weight: bold; font-size: 14px; margin-bottom: 10px; }
-        .controls { display: flex; align-items: center; justify-content: space-between; background: #f0f0f0; border-radius: 10px; padding: 5px; }
-        .btn { border: none; width: 35px; height: 35px; border-radius: 8px; font-size: 22px; cursor: pointer; background: var(--main); font-weight: bold; }
-        .count { font-weight: bold; font-size: 16px; min-width: 20px; text-align: center; }
+        .controls { display: flex; align-items: center; justify-content: space-between; background: #f0f0f0; border-radius: 10px; padding: 4px; }
+        .btn { border: none; width: 35px; height: 35px; border-radius: 8px; font-size: 22px; cursor: pointer; background: var(--main); font-weight: bold; display: flex; align-items: center; justify-content: center; }
+        .count { font-weight: bold; font-size: 16px; min-width: 25px; text-align: center; color: #000; }
     </style>
 </head>
 <body>
@@ -26,6 +26,9 @@
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
+        // Asosiy tugma rangini sozlash
+        tg.MainButton.setParams({ color: '#ffcc00', text_color: '#000000' });
+
         let cart = {};
 
         const menuData = {
@@ -66,8 +69,9 @@
 
         function render() {
             const list = document.getElementById('menu-list');
+            list.innerHTML = '';
             for (let cat in menuData) {
-                let html = `<div class="category-title">${cat}</div><div class="grid">`;
+                let html = `<div class="category-title">| ${cat}</div><div class="grid">`;
                 menuData[cat].forEach(p => {
                     html += `
                     <div class="card">
@@ -75,9 +79,9 @@
                         <div class="product-name">${p.name}</div>
                         <div class="product-price">${p.price.toLocaleString()} UZS</div>
                         <div class="controls">
-                            <button class="btn" onclick="update('${p.id}', '${p.name}', ${p.price}, -1)">-</button>
+                            <button class="btn" onclick="updateCount('${p.id}', '${p.name}', ${p.price}, -1)">-</button>
                             <span class="count" id="q-${p.id}">0</span>
-                            <button class="btn" onclick="update('${p.id}', '${p.name}', ${p.price}, 1)">+</button>
+                            <button class="btn" onclick="updateCount('${p.id}', '${p.name}', ${p.price}, 1)">+</button>
                         </div>
                     </div>`;
                 });
@@ -85,31 +89,44 @@
             }
         }
 
-        function update(id, name, price, delta) {
-            if (!cart[id]) cart[id] = { name, price, quantity: 0 };
+        function updateCount(id, name, price, delta) {
+            if (!cart[id]) {
+                cart[id] = { name: name, price: price, quantity: 0 };
+            }
+            
             cart[id].quantity += delta;
-            if (cart[id].quantity < 0) cart[id].quantity = 0;
+            
+            if (cart[id].quantity <= 0) {
+                cart[id].quantity = 0;
+            }
 
+            // UI ni darhol yangilash
             document.getElementById(`q-${id}`).innerText = cart[id].quantity;
             
-            // SUMMANI HAR SAFAR BOSGANDA QAYTADAN HISOB-KITOB QILISH
+            // Hisoblashni chaqirish
+            calculateTotal();
+        }
+
+        function calculateTotal() {
             let total = 0;
-            Object.values(cart).forEach(item => {
-                total += item.price * item.quantity;
-            });
+            for (let key in cart) {
+                total += cart[key].price * cart[key].quantity;
+            }
 
             if (total > 0) {
-                tg.MainButton.setText("BUYURTMA BERISH: " + total.toLocaleString() + " UZS");
+                tg.MainButton.setText(`BUYURTMA BERISH: ${total.toLocaleString()} UZS`);
                 tg.MainButton.show();
             } else {
                 tg.MainButton.hide();
             }
         }
 
+        // TUGMA BOSILGANDA MA'LUMOTNI YUBORISH
         tg.onEvent('mainButtonClicked', () => {
-            const order = Object.values(cart).filter(i => i.quantity > 0);
-            if(order.length > 0) {
-                tg.sendData(JSON.stringify(order));
+            const finalOrder = Object.values(cart).filter(item => item.quantity > 0);
+            if (finalOrder.length > 0) {
+                // Ma'lumotni JSON string qilib botga yuboramiz
+                tg.sendData(JSON.stringify(finalOrder));
             }
         });
 
