@@ -3,33 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Presto Pizza</title>
+    <title>Presto Pizza Menu</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root { --main-color: #ffcc00; --bg-dark: #000000; --card-bg: #ffffff; }
-        body { font-family: 'Segoe UI', Roboto, sans-serif; background: var(--bg-dark); color: white; margin: 0; padding-bottom: 100px; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg-dark); color: white; margin: 0; padding-bottom: 120px; }
         
-        /* Banner qismi */
-        .banner { width: 100%; height: 250px; background: url('https://images.unsplash.com/photo-1513104890138-7c749659a591?w=800') center/cover; position: relative; }
-        .banner-title { position: absolute; bottom: 0; left: 0; right: 0; padding: 20px; background: linear-gradient(transparent, black); text-align: center; font-size: 24px; font-weight: bold; }
+        .banner { width: 100%; height: 200px; background: url('https://images.unsplash.com/photo-1513104890138-7c749659a591?w=800') center/cover; position: relative; }
+        .banner-title { position: absolute; bottom: 0; left: 0; right: 0; padding: 15px; background: linear-gradient(transparent, black); text-align: center; font-size: 22px; font-weight: bold; letter-spacing: 2px; }
 
         .container { padding: 12px; }
-        .category-title { font-size: 18px; font-weight: bold; color: var(--main-color); margin: 20px 0 10px; border-left: 4px solid var(--main-color); padding-left: 10px; text-transform: uppercase; }
+        .category-title { font-size: 18px; font-weight: bold; color: var(--main-color); margin: 25px 0 12px; border-left: 4px solid var(--main-color); padding-left: 10px; text-transform: uppercase; }
 
-        /* Mahsulotlar to'ri (2 tadan) */
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .card { background: var(--card-bg); border-radius: 15px; padding: 10px; color: #333; display: flex; flex-direction: column; justify-content: space-between; position: relative; }
+        .card { background: var(--card-bg); border-radius: 15px; padding: 10px; color: #333; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
         
-        .product-img { width: 100%; height: 80px; object-fit: contain; margin-bottom: 5px; border-radius: 10px; }
-        .product-name { font-size: 14px; font-weight: bold; margin: 5px 0; height: 35px; overflow: hidden; color: #000; }
-        .product-price { color: #555; font-size: 13px; font-weight: bold; margin-bottom: 10px; }
+        .product-name { font-size: 14px; font-weight: bold; margin: 5px 0; color: #000; height: 35px; line-height: 1.2; overflow: hidden; }
+        .product-price { color: #d35400; font-size: 14px; font-weight: bold; margin-bottom: 10px; }
 
-        /* Boshqaruv tugmalari */
-        .controls { display: flex; align-items: center; justify-content: space-between; background: #f0f0f0; border-radius: 8px; padding: 3px; }
-        .btn { border: none; width: 28px; height: 28px; border-radius: 6px; font-size: 18px; font-weight: bold; cursor: pointer; }
+        .controls { display: flex; align-items: center; justify-content: space-between; background: #f0f0f0; border-radius: 8px; padding: 4px; }
+        .btn { border: none; width: 30px; height: 30px; border-radius: 6px; font-size: 20px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; }
         .plus { background: #333; color: var(--main-color); }
         .minus { background: #ddd; color: #333; }
-        .count { font-weight: bold; font-size: 14px; color: #000; }
+        .count { font-weight: bold; font-size: 15px; color: #000; min-width: 20px; text-align: center; }
     </style>
 </head>
 <body>
@@ -37,7 +33,7 @@
         <div class="banner-title">PRESTO PIZZA</div>
     </div>
 
-    <div class="container" id="menu-content">
+    <div class="container" id="menu-container">
         </div>
 
     <script>
@@ -45,63 +41,84 @@
         tg.expand();
         tg.MainButton.setParams({ color: '#ffcc00', text_color: '#000000' });
 
-        // Siz yuborgan rasmdagi barcha menyu va narxlar
-        const menuData = {
+        const fullMenu = {
             "Pizza": [
-                {id: "p1", name: "Pepperoni", price: 70000, img: "🍕"},
-                {id: "p2", name: "Pollo", price: 75000, img: "🍕"},
-                {id: "p3", name: "Vetchina", price: 75000, img: "🍕"},
-                {id: "p6", name: "Presto Pizza", price: 100000, img: "🍕"}
-            ],
-            "Sandwich": [
-                {id: "s1", name: "Indeyka", price: 30000, img: "🥪"},
-                {id: "s2", name: "Carnoso", price: 35000, img: "🥪"}
-            ],
-            "Burger": [
-                {id: "b1", name: "Burger Oddiy", price: 15000, img: "🍔"},
-                {id: "b2", name: "Chizburger", price: 17000, img: "🍔"}
+                {id: "p1", name: "Pepperoni", price: 70000},
+                {id: "p2", name: "Pollo", price: 75000},
+                {id: "p3", name: "Vetchina", price: 75000},
+                {id: "p4", name: "Carnoso", price: 85000},
+                {id: "p5", name: "4 Type", price: 90000},
+                {id: "p6", name: "Presto Pizza", price: 100000}
             ],
             "Hot-Dog": [
-                {id: "h1", name: "Hot-Dog Oddiy", price: 10000, img: "🌭"},
-                {id: "h2", name: "Canada", price: 13000, img: "🌭"}
+                {id: "h1", name: "Oddiy Hot-dog", price: 10000},
+                {id: "h2", name: "Canada", price: 13000},
+                {id: "h3", name: "Canada 2x", price: 15000},
+                {id: "h4", name: "Chicken Hot-dog", price: 18000},
+                {id: "h5", name: "Go'shtli Hot-dog", price: 20000},
+                {id: "h6", name: "Qazili Hot-dog", price: 25000}
+            ],
+            "Sandwich": [
+                {id: "s1", name: "Indeyka Sandwich", price: 30000},
+                {id: "s2", name: "Carnoso Sandwich", price: 35000},
+                {id: "s3", name: "Pollo Sandwich", price: 30000}
             ],
             "Lavash": [
-                {id: "l1", name: "Lavash", price: 25000, img: "🌯"},
-                {id: "l3", name: "Tandir Lavash", price: 30000, img: "🌯"}
+                {id: "l1", name: "Lavash", price: 25000},
+                {id: "l2", name: "Lavash Sirli", price: 28000},
+                {id: "l3", name: "Tandir Lavash", price: 30000},
+                {id: "l4", name: "Tandir Lavash Sirli", price: 35000}
+            ],
+            "Burger": [
+                {id: "b1", name: "Burger Oddiy", price: 15000},
+                {id: "b2", name: "Chizburger", price: 17000},
+                {id: "b3", name: "Chicken Burger", price: 20000},
+                {id: "b4", name: "BBQ Burger", price: 25000}
+            ],
+            "Doner": [
+                {id: "d1", name: "Doner", price: 25000},
+                {id: "d2", name: "Non Kabob", price: 35000},
+                {id: "d3", name: "KFC 1 porsiya", price: 25000},
+                {id: "d4", name: "Free", price: 15000}
             ]
         };
 
         let cart = {};
-        const container = document.getElementById('menu-content');
+        const container = document.getElementById('menu-container');
 
-        for (let cat in menuData) {
-            let html = `<div class="category-title">${cat}</div><div class="grid">`;
-            menuData[cat].forEach(p => {
-                html += `
+        for (let category in fullMenu) {
+            let catHtml = `<div class="category-title">${category}</div><div class="grid">`;
+            fullMenu[category].forEach(item => {
+                catHtml += `
                 <div class="card">
-                    <div style="font-size: 40px; text-align: center;">${p.img}</div>
-                    <div class="product-name">${p.name}</div>
-                    <div class="product-price">${p.price.toLocaleString()} UZS</div>
+                    <div class="product-name">${item.name}</div>
+                    <div class="product-price">${item.price.toLocaleString()} UZS</div>
                     <div class="controls">
-                        <button class="btn minus" onclick="update('${p.id}', '${p.name}', ${p.price}, -1)">-</button>
-                        <span class="count" id="q-${p.id}">0</span>
-                        <button class="btn plus" onclick="update('${p.id}', '${p.name}', ${p.price}, 1)">+</button>
+                        <button class="btn minus" onclick="changeCount('${item.id}', '${item.name}', ${item.price}, -1)">-</button>
+                        <span class="count" id="count-${item.id}">0</span>
+                        <button class="btn plus" onclick="changeCount('${item.id}', '${item.name}', ${item.price}, 1)">+</button>
                     </div>
                 </div>`;
             });
-            html += `</div>`;
-            container.innerHTML += html;
+            catHtml += `</div>`;
+            container.innerHTML += catHtml;
         }
 
-        function update(id, name, price, delta) {
+        function changeCount(id, name, price, delta) {
             if (!cart[id]) cart[id] = { name, price, count: 0 };
             cart[id].count += delta;
+            
             if (cart[id].count < 0) cart[id].count = 0;
             
-            document.getElementById(`q-${id}`).innerText = cart[id].count;
-            
+            document.getElementById(`count-${id}`).innerText = cart[id].count;
+            updateMainButton();
+        }
+
+        function updateMainButton() {
             let total = 0;
-            for (let key in cart) total += cart[key].count * cart[key].price;
+            for (let key in cart) {
+                total += cart[key].count * cart[key].price;
+            }
 
             if (total > 0) {
                 tg.MainButton.setText(`BUYURTMA BERISH: ${total.toLocaleString()} UZS`);
@@ -112,13 +129,15 @@
         }
 
         tg.onEvent('mainButtonClicked', function() {
-            let order = [];
+            let orderData = [];
             for (let key in cart) {
                 if (cart[key].count > 0) {
-                    for(let i=0; i<cart[key].count; i++) order.push({ name: cart[key].name, price: cart[key].price });
+                    for(let i=0; i < cart[key].count; i++) {
+                        orderData.push({ name: cart[key].name, price: cart[key].price });
+                    }
                 }
             }
-            tg.sendData(JSON.stringify(order));
+            tg.sendData(JSON.stringify(orderData));
         });
     </script>
 </body>
