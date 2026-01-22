@@ -7,215 +7,40 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root { --main: #ffcc00; --bg: #000; --card: #fff; --text: #000; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; padding: 0 12px 140px 12px; overflow-x: hidden; }
+        .header { position: sticky; top: 0; background: var(--bg); padding: 15px 0; z-index: 100; border-bottom: 2px solid var(--main); margin-bottom: 20px; }
+        .header h1 { color: var(--main); font-size: 24px; text-align: center; text-transform: uppercase; }
+        .category-title { color: var(--main); margin: 25px 0 15px; border-left: 4px solid var(--main); padding-left: 12px; text-transform: uppercase; font-weight: bold; font-size: 18px; }
+        .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+        .card { background: var(--card); border-radius: 16px; padding: 12px; color: var(--text); display: flex; flex-direction: column; justify-content: space-between; min-height: 240px; box-shadow: 0 4px 15px rgba(255, 204, 0, 0.2); }
         
-        :root { 
-            --main: #ffcc00; 
-            --bg: #000; 
-            --card: #fff; 
-            --text: #000;
-        }
-        
-        body { 
-            font-family: 'Segoe UI', -apple-system, sans-serif; 
-            background: var(--bg); 
-            color: white; 
-            margin: 0; 
-            padding: 0 12px 140px 12px;
-            -webkit-tap-highlight-color: transparent;
-            overflow-x: hidden;
-        }
-        
-        .header {
-            position: sticky;
-            top: 0;
-            background: var(--bg);
-            padding: 15px 0;
-            z-index: 100;
-            border-bottom: 2px solid var(--main);
-            margin-bottom: 20px;
-        }
-        
-        .header h1 {
-            color: var(--main);
-            font-size: 24px;
-            text-align: center;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-        
-        .category-title { 
-            color: var(--main); 
-            margin: 25px 0 15px; 
-            border-left: 4px solid var(--main); 
-            padding-left: 12px; 
-            text-transform: uppercase; 
-            font-weight: bold; 
-            font-size: 18px;
-            letter-spacing: 1px;
-        }
-        
-        .grid { 
-            display: grid; 
-            grid-template-columns: repeat(2, 1fr); 
-            gap: 12px; 
-            margin-bottom: 20px;
-        }
-        
-        .card { 
-            background: var(--card); 
-            border-radius: 16px; 
-            padding: 12px; 
-            color: var(--text); 
-            display: flex; 
-            flex-direction: column; 
-            justify-content: space-between; 
-            min-height: 170px;
-            box-shadow: 0 4px 15px rgba(255, 204, 0, 0.3);
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-        
-        .card:active {
-            transform: scale(0.98);
-            box-shadow: 0 2px 8px rgba(255, 204, 0, 0.4);
-        }
-        
-        .product-img { 
-            font-size: 45px; 
-            text-align: right; 
-            line-height: 1; 
-            margin-bottom: 8px;
-            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
-        }
-        
-        .product-name { 
-            font-weight: 700; 
-            font-size: 15px; 
-            margin: 8px 0; 
-            min-height: 38px;
-            display: flex;
-            align-items: center;
-            line-height: 1.3;
-        }
-        
-        .product-price { 
-            color: #d35400; 
-            font-weight: bold; 
-            font-size: 15px; 
-            margin-bottom: 12px;
-        }
-        
-        .controls { 
-            display: flex; 
-            align-items: center; 
-            justify-content: space-between; 
-            background: #f5f5f5; 
-            border-radius: 12px; 
-            padding: 6px;
-            gap: 8px;
-        }
-        
-        .btn { 
-            border: none; 
-            width: 38px; 
-            height: 38px; 
-            border-radius: 10px; 
-            font-size: 24px; 
-            cursor: pointer; 
-            background: var(--main); 
-            color: #000;
-            font-weight: bold; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center;
-            transition: all 0.2s;
-            user-select: none;
-            -webkit-user-select: none;
-        }
-        
-        .btn:active { 
-            transform: scale(0.9);
-            background: #e6b800;
-        }
-        
-        .btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-        
-        .count { 
-            font-weight: bold; 
-            font-size: 18px; 
-            min-width: 30px; 
-            text-align: center; 
-            color: var(--text);
-            user-select: none;
-        }
-        
-        .empty-cart {
-            text-align: center;
-            padding: 40px 20px;
-            color: #888;
-        }
-        
-        .empty-cart-icon {
-            font-size: 60px;
-            margin-bottom: 15px;
-        }
-        
-        /* Loading animation */
-        .loading {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 20px;
-            color: var(--main);
-        }
-        
-        /* Smooth scroll */
-        html {
-            scroll-behavior: smooth;
-        }
-        
-        /* Badge uchun */
-        .card.has-items {
-            box-shadow: 0 4px 20px rgba(255, 204, 0, 0.5);
-        }
+        /* Rasm va Emoji uchun universal box */
+        .product-media { width: 100%; height: 110px; display: flex; align-items: center; justify-content: center; margin-bottom: 8px; border-radius: 10px; overflow: hidden; }
+        .product-media img { width: 100%; height: 100%; object-fit: cover; }
+        .product-media.emoji { font-size: 45px; }
+
+        .product-name { font-weight: 700; font-size: 14px; margin: 5px 0; min-height: 35px; display: flex; align-items: center; }
+        .product-price { color: #d35400; font-weight: bold; font-size: 14px; margin-bottom: 10px; }
+        .controls { display: flex; align-items: center; justify-content: space-between; background: #f5f5f5; border-radius: 12px; padding: 4px; }
+        .btn { border: none; width: 34px; height: 34px; border-radius: 10px; font-size: 20px; background: var(--main); font-weight: bold; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+        .count { font-weight: bold; font-size: 16px; color: var(--text); }
+        .loading { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); color: var(--main); }
+        .card.has-items { border: 2px solid var(--main); }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>🍕 Presto Pizza</h1>
-    </div>
-    
-    <div class="container" id="menu-list">
-        <div class="loading">⏳ Yuklanmoqda...</div>
-    </div>
+    <div class="header"><h1>🍕 Presto Pizza</h1></div>
+    <div id="menu-list"><div class="loading">⏳ Yuklanmoqda...</div></div>
 
     <script>
-        // ==========================================
-        // TELEGRAM WEB APP SOZLAMALARI
-        // ==========================================
         const tg = window.Telegram.WebApp;
         tg.expand();
-        tg.MainButton.setParams({ 
-            color: '#ffcc00', 
-            text_color: '#000000',
-            is_visible: false
-        });
+        tg.MainButton.setParams({ color: '#ffcc00', text_color: '#000000', is_visible: false });
         
-        // Orqaga qaytish tugmasini yashirish
-        tg.BackButton.hide();
-
-        // ==========================================
-        // GLOBAL O'ZGARUVCHILAR
-        // ==========================================
         let cart = {};
-        let isProcessing = false; // Bir vaqtning o'zida faqat bitta amal
 
-        // ==========================================
-        // MENYU MA'LUMOTLARI
-        // ==========================================
+        // Sening hamma mahsulotlaring (Donar rasmi bilan)
         const menuData = {
             "PIZZA": [
                 {id: "p1", name: "Pepperoni", price: 70000, img: "🍕"},
@@ -245,276 +70,80 @@
                 {id: "b4", name: "BBQ Burger", price: 25000, img: "🍔"}
             ],
             "DONER": [
-                {id: "d1", name: "Doner", price: 25000, img: "🥙"},
+                {id: "d1", name: "Donar", price: 25000, img: "https://otash2002.github.io/prezto_pizza_bot/img/donar.jpg"},
                 {id: "d2", name: "Non Kabob", price: 35000, img: "🥙"},
                 {id: "d3", name: "KFC 1 porsiya", price: 25000, img: "🍗"},
                 {id: "d4", name: "Free", price: 15000, img: "🍟"}
             ]
         };
 
-        // ==========================================
-        // MENYU RENDER QILISH
-        // ==========================================
         function render() {
             const list = document.getElementById('menu-list');
             list.innerHTML = '';
-            
             for (let category in menuData) {
-                // Kategoriya sarlavhasi
-                const categoryTitle = document.createElement('div');
-                categoryTitle.className = 'category-title';
-                categoryTitle.textContent = `| ${category}`;
-                list.appendChild(categoryTitle);
-                
-                // Grid container
+                const title = document.createElement('div');
+                title.className = 'category-title';
+                title.textContent = `| ${category}`;
+                list.appendChild(title);
                 const grid = document.createElement('div');
                 grid.className = 'grid';
-                
-                // Mahsulotlar
                 menuData[category].forEach(product => {
-                    const card = createProductCard(product);
-                    grid.appendChild(card);
+                    grid.appendChild(createProductCard(product));
                 });
-                
                 list.appendChild(grid);
             }
         }
 
-        // ==========================================
-        // MAHSULOT KARTOCHKASINI YARATISH
-        // ==========================================
         function createProductCard(product) {
             const card = document.createElement('div');
             card.className = 'card';
             card.id = `card-${product.id}`;
             
-            // Rasm
-            const img = document.createElement('div');
-            img.className = 'product-img';
-            img.textContent = product.img;
-            
-            // Nomi
-            const name = document.createElement('div');
-            name.className = 'product-name';
-            name.textContent = product.name;
-            
-            // Narxi
-            const price = document.createElement('div');
-            price.className = 'product-price';
-            price.textContent = `${product.price.toLocaleString()} UZS`;
-            
-            // Boshqaruv tugmalari
-            const controls = document.createElement('div');
-            controls.className = 'controls';
-            
-            const minusBtn = document.createElement('button');
-            minusBtn.className = 'btn';
-            minusBtn.textContent = '-';
-            minusBtn.onclick = () => updateCount(product.id, product.name, product.price, -1);
-            
-            const countSpan = document.createElement('span');
-            countSpan.className = 'count';
-            countSpan.id = `q-${product.id}`;
-            countSpan.textContent = '0';
-            
-            const plusBtn = document.createElement('button');
-            plusBtn.className = 'btn';
-            plusBtn.textContent = '+';
-            plusBtn.onclick = () => updateCount(product.id, product.name, product.price, 1);
-            
-            controls.appendChild(minusBtn);
-            controls.appendChild(countSpan);
-            controls.appendChild(plusBtn);
-            
-            card.appendChild(img);
-            card.appendChild(name);
-            card.appendChild(price);
-            card.appendChild(controls);
-            
+            const isLink = product.img.startsWith('http');
+            const mediaHTML = isLink 
+                ? `<div class="product-media"><img src="${product.img}"></div>` 
+                : `<div class="product-media emoji">${product.img}</div>`;
+
+            card.innerHTML = `
+                ${mediaHTML}
+                <div class="product-name">${product.name}</div>
+                <div class="product-price">${product.price.toLocaleString()} UZS</div>
+                <div class="controls">
+                    <button class="btn" onclick="updateCount('${product.id}', '${product.name}', ${product.price}, -1)">-</button>
+                    <span class="count" id="q-${product.id}">0</span>
+                    <button class="btn" onclick="updateCount('${product.id}', '${product.name}', ${product.price}, 1)">+</button>
+                </div>
+            `;
             return card;
         }
 
-        // ==========================================
-        // MIQDORNI YANGILASH
-        // ==========================================
         function updateCount(id, name, price, delta) {
-            // Agar allaqachon jarayon borsa, qaytish
-            if (isProcessing) return;
-            isProcessing = true;
-            
-            // Savat ma'lumotini yangilash
-            if (!cart[id]) {
-                cart[id] = { name, price, quantity: 0 };
-            }
-            
+            if (!cart[id]) cart[id] = { name, price, quantity: 0 };
             cart[id].quantity += delta;
+            if (cart[id].quantity < 0) cart[id].quantity = 0;
             
-            // Manfiy bo'lmasligi uchun
-            if (cart[id].quantity < 0) {
-                cart[id].quantity = 0;
-            }
-            
-            // Maksimal miqdor (ixtiyoriy)
-            if (cart[id].quantity > 99) {
-                cart[id].quantity = 99;
-            }
-            
-            // UI ni yangilash
-            const countElement = document.getElementById(`q-${id}`);
-            if (countElement) {
-                countElement.textContent = cart[id].quantity;
-                
-                // Animatsiya
-                countElement.style.transform = 'scale(1.3)';
-                setTimeout(() => {
-                    countElement.style.transform = 'scale(1)';
-                }, 150);
-            }
-            
-            // Kartochka rangini o'zgartirish (agar savatda bo'lsa)
+            document.getElementById(`q-${id}`).textContent = cart[id].quantity;
             const card = document.getElementById(`card-${id}`);
-            if (card) {
-                if (cart[id].quantity > 0) {
-                    card.classList.add('has-items');
-                } else {
-                    card.classList.remove('has-items');
-                }
-            }
-            
-            // Jami summani hisoblash
+            if (cart[id].quantity > 0) card.classList.add('has-items');
+            else card.classList.remove('has-items');
             calculateTotal();
-            
-            // Vibration (agar qo'llab-quvvatlasa)
-            if (navigator.vibrate) {
-                navigator.vibrate(10);
-            }
-            
-            setTimeout(() => {
-                isProcessing = false;
-            }, 100);
         }
 
-        // ==========================================
-        // JAMI SUMMANI HISOBLASH
-        // ==========================================
         function calculateTotal() {
-            let total = 0;
-            let itemCount = 0;
-            
-            for (let key in cart) {
-                if (cart[key].quantity > 0) {
-                    total += cart[key].price * cart[key].quantity;
-                    itemCount += cart[key].quantity;
-                }
-            }
-            
-            // Asosiy tugmani ko'rsatish/yashirish
+            let total = 0, count = 0;
+            for (let k in cart) { total += cart[k].price * cart[k].quantity; count += cart[k].quantity; }
             if (total > 0) {
-                tg.MainButton.setText(`BUYURTMA BERISH: ${total.toLocaleString()} UZS (${itemCount} ta)`);
+                tg.MainButton.setText(`BUYURTMA BERISH: ${total.toLocaleString()} UZS (${count} ta)`);
                 tg.MainButton.show();
-                tg.MainButton.enable();
-            } else {
-                tg.MainButton.hide();
-            }
+            } else tg.MainButton.hide();
         }
 
-        // ==========================================
-        // BUYURTMA YUBORISH
-        // ==========================================
         tg.onEvent('mainButtonClicked', () => {
-            // Loading holatiga o'tish
-            tg.MainButton.showProgress();
-            tg.MainButton.disable();
-            
-            // Faqat quantity > 0 bo'lgan mahsulotlarni olish
-            const finalOrder = [];
-            
-            for (let key in cart) {
-                if (cart[key].quantity > 0) {
-                    finalOrder.push({
-                        name: cart[key].name,
-                        price: cart[key].price,
-                        quantity: cart[key].quantity
-                    });
-                }
-            }
-            
-            // Tekshirish
-            if (finalOrder.length === 0) {
-                tg.showAlert('❌ Savat bo\'sh!');
-                tg.MainButton.hideProgress();
-                tg.MainButton.enable();
-                return;
-            }
-            
-            // Tasdiqlash dialogi
-            let confirmText = '📦 Buyurtmangiz:\n\n';
-            let total = 0;
-            
-            finalOrder.forEach((item, index) => {
-                const itemTotal = item.price * item.quantity;
-                total += itemTotal;
-                confirmText += `${index + 1}. ${item.name}\n   ${item.quantity} x ${item.price.toLocaleString()} = ${itemTotal.toLocaleString()} so'm\n\n`;
-            });
-            
-            confirmText += `💰 Jami: ${total.toLocaleString()} so'm\n\n`;
-            confirmText += `Buyurtmani tasdiqlaysizmi?`;
-            
-            tg.showConfirm(confirmText, (confirmed) => {
-                if (confirmed) {
-                    try {
-                        // Ma'lumotni JSON formatda yuborish
-                        tg.sendData(JSON.stringify(finalOrder));
-                        
-                        // Muvaffaqiyatli yuborilgandan keyin
-                        tg.showAlert('✅ Buyurtma yuborildi!');
-                        
-                        // Savatni tozalash (ixtiyoriy)
-                        // cart = {};
-                        // render();
-                    } catch (error) {
-                        console.error('Xatolik:', error);
-                        tg.showAlert('❌ Xatolik yuz berdi. Qayta urinib ko\'ring.');
-                        tg.MainButton.hideProgress();
-                        tg.MainButton.enable();
-                    }
-                } else {
-                    tg.MainButton.hideProgress();
-                    tg.MainButton.enable();
-                }
-            });
+            const order = Object.values(cart).filter(i => i.quantity > 0);
+            tg.sendData(JSON.stringify(order));
         });
 
-        // ==========================================
-        // SAHIFA YUKLANGANDA
-        // ==========================================
-        window.addEventListener('DOMContentLoaded', () => {
-            render();
-            
-            // Telegram ga tayyor ekanligini xabar berish
-            tg.ready();
-            
-            // Yuklanish animatsiyasini o'chirish
-            setTimeout(() => {
-                const loading = document.querySelector('.loading');
-                if (loading) loading.remove();
-            }, 500);
-        });
-
-        // ==========================================
-        // XATOLIKLARNI TUTISH
-        // ==========================================
-        window.addEventListener('error', (event) => {
-            console.error('Global error:', event.error);
-            tg.showAlert('❌ Xatolik yuz berdi. Sahifani yangilang.');
-        });
-        
-        // Console loglarni o'chirish (production uchun)
-        if (window.location.hostname !== 'localhost') {
-            console.log = () => {};
-            console.error = () => {};
-            console.warn = () => {};
-        }
+        window.onload = () => { render(); tg.ready(); setTimeout(() => document.querySelector('.loading')?.remove(), 500); };
     </script>
 </body>
 </html>
