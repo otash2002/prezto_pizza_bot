@@ -14,7 +14,8 @@ export class BotService implements OnModuleInit {
         cart: [] as any[], 
         phone: '', 
         orderType: '', 
-        location: null as any 
+        location: null as any,
+        lastAction: 'menu' // ❗ Oxirgi harakatni kuzatish
       }) 
     }));
 
@@ -37,10 +38,12 @@ export class BotService implements OnModuleInit {
     };
 
     // ========================================
-    // 1. START COMMAND
+    // START COMMAND
     // ========================================
     const startAction = async (ctx: any) => {
       ctx.session.cart = [];
+      ctx.session.lastAction = 'menu';
+      
       const user = await this.prisma.user.findUnique({ 
         where: { telegramId: ctx.from.id.toString() } 
       });
@@ -71,7 +74,22 @@ export class BotService implements OnModuleInit {
     this.bot.command('start', startAction);
 
     // ========================================
-    // 2. TELEFON RAQAM QABUL QILISH
+    // ORTGA QAYTISH TUGMASI HANDLER
+    // ========================================
+    this.bot.on('callback_query:data', async (ctx, next) => {
+      const data = ctx.callbackQuery.data;
+      
+      // Orqaga tugmasi bosilganda
+      if (data === 'back') {
+        await this.handleBackButton(ctx);
+        return;
+      }
+      
+      return next();
+    });
+
+    // ========================================
+    // TELEFON RAQAM
     // ========================================
     this.bot.on('message:contact', async (ctx: any) => {
       const phone = ctx.message.contact.phone_number;
@@ -98,10 +116,11 @@ export class BotService implements OnModuleInit {
     });
 
     // ========================================
-    // 3. XIZMAT TURINI TANLASH
+    // XIZMAT TURI
     // ========================================
     this.bot.callbackQuery('type_delivery', async (ctx: any) => {
       ctx.session.orderType = 'Yetkazib berish';
+      ctx.session.lastAction = 'selecting_delivery';
       await ctx.answerCallbackQuery();
       
       await ctx.editMessageText("📍 **Yetkazib berish tanlandi**");
@@ -120,6 +139,7 @@ export class BotService implements OnModuleInit {
     this.bot.callbackQuery('type_pickup', async (ctx: any) => {
       ctx.session.orderType = 'Olib ketish';
       ctx.session.location = null;
+      ctx.session.lastAction = 'menu';
       await ctx.answerCallbackQuery();
       
       await ctx.editMessageText("🛍 **Olib ketish tanlandi**");
@@ -131,10 +151,11 @@ export class BotService implements OnModuleInit {
     });
 
     // ========================================
-    // 4. LOKATSIYA QABUL QILISH
+    // LOKATSIYA
     // ========================================
     this.bot.on('message:location', async (ctx: any) => {
       ctx.session.location = ctx.message.location;
+      ctx.session.lastAction = 'menu';
       
       await ctx.reply(
         "✅ Manzil qabul qilindi!\n\nEndi menudan buyurtma bering 👇", 
@@ -143,19 +164,16 @@ export class BotService implements OnModuleInit {
     });
 
     // ========================================
-    // 5. MINI APP DAN BUYURTMA QABUL QILISH (ASOSIY QISM)
+    // MINI APP DAN BUYURTMA
     // ========================================
     this.bot.on('message:web_app_data', async (ctx: any) => {
       try {
-        // HTML dan kelgan ma'lumot
         const orderItems = JSON.parse(ctx.message.web_app_data.data);
         
-        // Bo'sh buyurtma tekshiruvi
         if (!orderItems || orderItems.length === 0) {
           return ctx.reply("❌ Buyurtma bo'sh!");
         }
 
-        // Telefon va xizmat turini tekshirish
         if (!ctx.session.phone) {
           return ctx.reply("❌ Avval raqamingizni yuboring!");
         }
@@ -171,7 +189,6 @@ export class BotService implements OnModuleInit {
           );
         }
 
-        // Yetkazib berish uchun lokatsiya tekshiruvi
         if (ctx.session.orderType === 'Yetkazib berish' && !ctx.session.location) {
           return ctx.reply(
             "❌ Yetkazib berish uchun manzilni yuboring!", 
@@ -184,10 +201,8 @@ export class BotService implements OnModuleInit {
           );
         }
 
-        // =========================================
-        // BUYURTMA XABARINI TAYYORLASH
-        // =========================================
-        let orderSummary = "🔔 **YANGI BUYURTMA!**\n\n";
+        // Buyurtma xabari
+        let orderSummary = "🚀 **Mini App-dan yangi buyurtma!**\n\n";
         orderSummary += `👤 **Mijoz:** ${ctx.from.first_name}\n`;
         orderSummary += `📞 **Telefon:** ${ctx.session.phone}\n`;
         orderSummary += `🚚 **Turi:** ${ctx.session.orderType}\n\n`;
@@ -195,7 +210,6 @@ export class BotService implements OnModuleInit {
         
         let totalPrice = 0;
 
-        // Har bir mahsulotni qo'shish
         orderItems.forEach((item: any, index: number) => {
           const itemTotal = item.price * item.quantity;
           totalPrice += itemTotal;
@@ -206,9 +220,7 @@ export class BotService implements OnModuleInit {
 
         orderSummary += `💰 **JAMI: ${totalPrice.toLocaleString()} so'm**`;
 
-        // =========================================
-        // ADMIN GA YUBORISH
-        // =========================================
+        // Admin ga yuborish
         const adminKeyboard = new InlineKeyboard()
           .text("✅ Qabul qilish", `accept_${ctx.from.id}_${totalPrice}`)
           .text("❌ Rad etish", `reject_${ctx.from.id}`)
@@ -218,10 +230,12 @@ export class BotService implements OnModuleInit {
         await this.bot.api.sendMessage(
           this.ADMIN_ID, 
           orderSummary, 
-          { reply_markup: adminKeyboard }
+          { 
+            parse_mode: 'Markdown',
+            reply_markup: adminKeyboard 
+          }
         );
 
-        // Agar yetkazib berish bo'lsa, lokatsiyani ham yuborish
         if (ctx.session.location) {
           await this.bot.api.sendLocation(
             this.ADMIN_ID, 
@@ -236,48 +250,41 @@ export class BotService implements OnModuleInit {
           );
         }
 
-        // =========================================
-        // MIJOZGA JAVOB YUBORISH
-        // =========================================
         await ctx.reply(
           `✅ **Buyurtmangiz qabul qilindi!**\n\n` +
           `💰 Jami: ${totalPrice.toLocaleString()} so'm\n\n` +
-          `⏳ Operatorlarimiz tez orada siz bilan bog'lanadi.`, 
+          `⏳ Operatorlarimiz tez orada siz bilan bog'lanadi.`,
           { reply_markup: mainMenu }
         );
 
-        // Sessionni tozalash
         ctx.session.cart = [];
+        ctx.session.lastAction = 'menu';
 
       } catch (error) {
-        console.error('Buyurtma qabul qilishda xatolik:', error);
-        await ctx.reply("❌ Xatolik yuz berdi. Iltimos, qayta urinib ko'ring.");
+        console.error('Xatolik:', error);
+        await ctx.reply("❌ Xatolik yuz berdi. Qayta urinib ko'ring.");
       }
     });
 
     // ========================================
-    // 6. ADMIN TUGMALARI
+    // ADMIN TUGMALARI
     // ========================================
-    
-    // QABUL QILISH
     this.bot.callbackQuery(/^accept_(\d+)_(\d+)$/, async (ctx: any) => {
       const userId = ctx.match[1];
       const totalPrice = ctx.match[2];
       
       await ctx.answerCallbackQuery("✅ Buyurtma qabul qilindi");
       
-      // Mijozga xabar yuborish
       try {
         await this.bot.api.sendMessage(
           userId,
           `✅ **Buyurtmangiz qabul qilindi!**\n\n` +
           `💰 Summa: ${parseInt(totalPrice).toLocaleString()} so'm\n` +
           `⏰ Tayyorlanish vaqti: 30-40 daqiqa\n\n` +
-          `📞 Savollar bo'lsa: +998 94 677 75 90\n\n` +
+          `📞 Savollar uchun: +998 94 677 75 90\n\n` +
           `🙏 Rahmat! Yaxshi ishtaha!`
         );
         
-        // Admin xabarini yangilash
         await ctx.editMessageText(
           ctx.callbackQuery.message.text + "\n\n✅ **STATUS: QABUL QILINDI**"
         );
@@ -286,13 +293,11 @@ export class BotService implements OnModuleInit {
       }
     });
 
-    // RAD ETISH
     this.bot.callbackQuery(/^reject_(\d+)$/, async (ctx: any) => {
       const userId = ctx.match[1];
       
       await ctx.answerCallbackQuery("❌ Buyurtma rad etildi");
       
-      // Mijozga xabar yuborish
       try {
         await this.bot.api.sendMessage(
           userId,
@@ -302,7 +307,6 @@ export class BotService implements OnModuleInit {
           `Yana buyurtma berishingiz mumkin 👇`
         );
         
-        // Admin xabarini yangilash
         await ctx.editMessageText(
           ctx.callbackQuery.message.text + "\n\n❌ **STATUS: RAD ETILDI**"
         );
@@ -311,11 +315,9 @@ export class BotService implements OnModuleInit {
       }
     });
 
-    // ALOQA TUGMASI (to'g'ridan-to'g'ri qo'ng'iroq qilish)
     this.bot.callbackQuery(/^contact_(\d+)$/, async (ctx: any) => {
       const userId = ctx.match[1];
       
-      // User ma'lumotlarini olish
       const user = await this.prisma.user.findUnique({
         where: { telegramId: userId }
       });
@@ -329,12 +331,13 @@ export class BotService implements OnModuleInit {
     });
 
     // ========================================
-    // 7. ASOSIY MATNLI BUYRUQLAR
+    // MATNLI BUYRUQLAR
     // ========================================
     this.bot.on('message:text', async (ctx: any) => {
       const text = ctx.message.text;
       
       if (text === "🛒 Savat") {
+        ctx.session.lastAction = 'cart';
         await this.showCart(ctx);
       } else if (text === "🔄 Qayta boshlash") {
         await startAction(ctx);
@@ -349,29 +352,117 @@ export class BotService implements OnModuleInit {
     });
 
     // ========================================
-    // 8. SAVAT (eski bot uchun)
+    // KATEGORIYALAR (eski bot uchun)
     // ========================================
+    this.bot.callbackQuery(/^cat_(\d+)$/, async (ctx: any) => {
+      const catId = parseInt(ctx.match[1]);
+      ctx.session.lastAction = `category_${catId}`;
+      
+      const products = await this.prisma.product.findMany({ 
+        where: { categoryId: catId } 
+      });
+      
+      const keyboard = new InlineKeyboard();
+      products.forEach(p => {
+        keyboard.text(`🍕 ${p.name} - ${p.price.toLocaleString()}`, `add_${p.id}`).row();
+      });
+      keyboard.text("⬅️ Orqaga", "back");
+      
+      await ctx.editMessageText("😋 **Taomni tanlang:**", { reply_markup: keyboard });
+    });
+
+    this.bot.callbackQuery(/^add_(\d+)$/, async (ctx: any) => {
+      const product = await this.prisma.product.findUnique({ 
+        where: { id: parseInt(ctx.match[1]) } 
+      });
+      
+      if (product) { 
+        ctx.session.cart.push(product); 
+        await ctx.answerCallbackQuery(`✅ ${product.name} qo'shildi!`);
+      }
+    });
+
+    this.bot.callbackQuery('back_to_cats', (ctx: any) => {
+      ctx.session.lastAction = 'menu';
+      this.showCategories(ctx, true);
+    });
+
+    this.bot.callbackQuery('clear_cart', (ctx: any) => { 
+      ctx.session.cart = [];
+      ctx.session.lastAction = 'menu';
+      this.showCategories(ctx, true); 
+    });
+
     this.bot.callbackQuery('confirm_order', async (ctx: any) => {
       if (!isWorkingTime()) {
-        return ctx.answerCallbackQuery("⚠️ Hozir ish vaqti emas (09:00-03:00)", { show_alert: true });
+        return ctx.answerCallbackQuery("⚠️ Hozir ish vaqti emas", { show_alert: true });
       }
       
       if (ctx.session.cart.length === 0) {
         return ctx.answerCallbackQuery("🛒 Savat bo'sh!");
       }
 
-      // ... (eski kod) ...
+      // Buyurtma yuborish...
     });
 
-    // Bot ishga tushirish
     await this.bot.start();
     console.log('🤖 Bot ishga tushdi!');
   }
 
   // ========================================
+  // ORTGA QAYTISH LOGIKASI
+  // ========================================
+  async handleBackButton(ctx: any) {
+    const lastAction = ctx.session.lastAction;
+    
+    if (lastAction === 'cart') {
+      // Savatdan menyuga qaytish
+      ctx.session.lastAction = 'menu';
+      await this.showCategories(ctx, true);
+    } else if (lastAction.startsWith('category_')) {
+      // Kategoriyadan menyuga qaytish
+      ctx.session.lastAction = 'menu';
+      await this.showCategories(ctx, true);
+    } else {
+      // Default - menyuga qaytish
+      ctx.session.lastAction = 'menu';
+      await this.showCategories(ctx, true);
+    }
+    
+    await ctx.answerCallbackQuery();
+  }
+
+  // ========================================
   // YORDAMCHI FUNKSIYALAR
   // ========================================
-  
+  async showCategories(ctx: any, edit: boolean = false) {
+    const categories = await this.prisma.category.findMany();
+    const keyboard = new InlineKeyboard();
+    
+    const emojis: any = { 
+      'pizza': '🍕', 'pitsa': '🍕', 
+      'burger': '🍔', 
+      'lavash': '🌯', 
+      'ichimlik': '🥤', 
+      'doner': '🥙', 
+      'hot-dog': '🌭', 'hotdog': '🌭',
+      'sandwich': '🥪', 'sendvich': '🥪' 
+    };
+    
+    categories.forEach(c => {
+      const emoji = emojis[c.name.toLowerCase()] || '🍴';
+      keyboard.text(`${emoji} ${c.name}`, `cat_${c.id}`).row();
+    });
+
+    const text = "🍽 **Kategoriyani tanlang:**";
+    
+    if (edit && ctx.callbackQuery) {
+      await ctx.editMessageText(text, { reply_markup: keyboard });
+    } else {
+      await ctx.reply(text, { reply_markup: keyboard });
+    }
+  }
+
   async showCart(ctx: any) {
     if (!ctx.session.cart || ctx.session.cart.length === 0) {
       return ctx.reply("🛒 Savatingiz bo'sh.\n\nMenudan buyurtma bering 👇");
@@ -388,7 +479,8 @@ export class BotService implements OnModuleInit {
     });
     
     text += `\n💰 **Jami: ${total.toLocaleString()} so'm**`;
-    keyboard.text("✅ Tasdiqlash", "confirm_order").text("🗑 Tozalash", "clear_cart");
+    keyboard.text("✅ Tasdiqlash", "confirm_order").row();
+    keyboard.text("⬅️ Orqaga", "back").text("🗑 Tozalash", "clear_cart");
     
     await ctx.reply(text, { reply_markup: keyboard });
   }
