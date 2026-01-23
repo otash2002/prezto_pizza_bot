@@ -9,6 +9,8 @@ export class BotService implements OnModuleInit {
   private readonly ADMIN_ID = process.env.ADMIN_ID!;
 
   async onModuleInit() {
+    console.log('Bot ishga tushmoqda...');
+
     // 1. SESSION INITIALIZATION
     this.bot.use(session({ 
       initial: () => ({ 
@@ -16,7 +18,7 @@ export class BotService implements OnModuleInit {
         phone: '', 
         orderType: '', 
         location: null as any,
-        addressText: '', // Matnli manzil uchun yangi maydon
+        addressText: '', 
         lastAction: 'menu' 
       }) 
     }));
@@ -43,10 +45,19 @@ export class BotService implements OnModuleInit {
       ctx.session.addressText = '';
       ctx.session.lastAction = 'registration';
 
-      await this.prisma.user.updateMany({
-        where: { telegramId: ctx.from.id.toString() },
-        data: { phone: '' }
-      });
+      try {
+        await this.prisma.user.upsert({
+          where: { telegramId: ctx.from.id.toString() },
+          update: { phone: '' },
+          create: { 
+            telegramId: ctx.from.id.toString(), 
+            phone: '', 
+            name: ctx.from.first_name 
+          }
+        });
+      } catch (e) {
+        console.error("User yaratishda xato:", e);
+      }
 
       await ctx.reply(
         `🍕 **Presto Pizza** ga xush kelibsiz!\n\nXizmat ko'rsatishimiz uchun raqamingizni yuboring:`, 
@@ -90,12 +101,12 @@ export class BotService implements OnModuleInit {
     // ========================================
     this.bot.callbackQuery('type_delivery', async (ctx: any) => {
       ctx.session.orderType = 'Yetkazib berish';
-      ctx.session.lastAction = 'waiting_location'; // Holatni o'zgartiramiz
+      ctx.session.lastAction = 'waiting_location';
       await ctx.answerCallbackQuery();
       await ctx.editMessageText("📍 **Yetkazib berish tanlandi**");
       
       await ctx.reply(
-        "Manzilni yuborish uchun **Lokatsiyani yuborish** tugmasini bosing yoki manzilni **matn ko'rinishida yozib yuboring** (Kompyuterda bo'lsangiz):\n\nMasalan: *Chortoq, Navoiy ko'chasi, 15-uy*", 
+        "Manzilni yuborish uchun **Lokatsiyani yuborish** tugmasini bosing yoki manzilni **matn ko'rinishida yozib yuboring**:", 
         {
           parse_mode: "Markdown",
           reply_markup: new Keyboard()
@@ -117,7 +128,6 @@ export class BotService implements OnModuleInit {
       await ctx.reply("✅ Manzil: Chartak sh., Alisher Navoiy ko'chasi.\n\nMenudan buyurtma bering 👇", { reply_markup: mainMenu });
     });
 
-    // Lokatsiya kelganda (Telefon)
     this.bot.on('message:location', async (ctx: any) => {
       if (ctx.session.lastAction === 'waiting_location') {
         ctx.session.location = ctx.message.location;
@@ -133,6 +143,8 @@ export class BotService implements OnModuleInit {
     this.bot.on('message:web_app_data', async (ctx: any) => {
       try {
         const orderItems = JSON.parse(ctx.message.web_app_data.data);
+        console.log("Yangi buyurtma keldi:", orderItems);
+
         if (!orderItems || orderItems.length === 0) return ctx.reply("❌ Buyurtma bo'sh!");
         if (!ctx.session.phone) return ctx.reply("❌ Avval raqam yuboring! /start");
 
@@ -156,6 +168,7 @@ export class BotService implements OnModuleInit {
           .row()
           .text("📞 Aloqa", `contact_${ctx.from.id}`);
 
+        // Admin xabari
         await this.bot.api.sendMessage(this.ADMIN_ID, orderSummary, { 
           parse_mode: 'Markdown', 
           reply_markup: adminKeyboard 
@@ -166,7 +179,10 @@ export class BotService implements OnModuleInit {
         }
 
         await ctx.reply(`✅ **Buyurtmangiz yuborildi!**\n💰 Jami: ${totalPrice.toLocaleString()} so'm`, { reply_markup: mainMenu });
-      } catch (e) { await ctx.reply("❌ Xatolik yuz berdi."); }
+      } catch (e) { 
+        console.error("WEB APP DATA ERROR:", e);
+        await ctx.reply("❌ Xatolik yuz berdi. Iltimos qaytadan urinib ko'ring."); 
+      }
     });
 
     // ========================================
@@ -175,10 +191,9 @@ export class BotService implements OnModuleInit {
     this.bot.on('message:text', async (ctx: any) => {
       const text = ctx.message.text;
 
-      // Agar lokatsiya kutayotgan bo'lsak va foydalanuvchi matn yozsa
       if (ctx.session.lastAction === 'waiting_location' && text !== "🔙 Bekor qilish") {
         ctx.session.addressText = text;
-        ctx.session.location = null; // Koordinata yo'q, faqat matn
+        ctx.session.location = null;
         ctx.session.lastAction = 'menu';
         await ctx.reply(`✅ Manzil qabul qilindi: *${text}*\n\nMenudan buyurtma bering 👇`, { 
           parse_mode: "Markdown",
@@ -196,7 +211,7 @@ export class BotService implements OnModuleInit {
       }
     });
 
-    // Admin va boshqa callbacklar o'zgarishsiz qoladi...
+    // Admin callbacklari
     this.bot.callbackQuery(/^accept_(\d+)_(\d+)$/, async (ctx: any) => {
       const userId = ctx.match[1];
       const price = ctx.match[2];
@@ -215,18 +230,20 @@ export class BotService implements OnModuleInit {
       await ctx.reply(`📞 Mijoz: ${user?.phone || 'Noma`lum'}`);
     });
 
-    await this.bot.start();
+    // Botni ishga tushirish (NestJS processni bloklamasligi uchun)
+    this.bot.start().catch(err => console.error("Bot Start Error:", err));
+    console.log('Bot Polling rejimida muvaffaqiyatli ishga tushdi ✅');
   }
 
   async showCart(ctx: any) {
-    if (!ctx.session.cart?.length) return ctx.reply("🛒 Savatingiz bo'sh.");
+    if (!ctx.session.cart?.length) return ctx.reply("🛒 Savantingiz bo'sh.");
     let total = 0;
     let text = "🛒 **Savatingiz:**\n\n";
     ctx.session.cart.forEach((p: any, i: number) => {
       text += `${i + 1}. ${p.name} - ${p.price.toLocaleString()} so'm\n`;
       total += p.price;
     });
-    text += `\n💰 **Jami: ${total.toLocaleString()} so'm**\n\nBuyurtma berish uchun Mini App-ga kiring.`;
+    text += `\n💰 **Jami: ${total.toLocaleString()} so'm**\n\nBuyurtma berish uchun Menuga kiring.`;
     await ctx.reply(text);
   }
 }

@@ -6,9 +6,8 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = "postgresql://postgres:otash2002@localhost:5432/fastfood_db?schema=public"
+  url      = env("DATABASE_URL")
 }
-
 model User {
   id         Int      @id @default(autoincrement())
   telegramId String   @unique
