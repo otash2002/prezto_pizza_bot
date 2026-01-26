@@ -196,45 +196,46 @@
         let cart = {};
 
         // MAHSULOTLAR (har biriga o'z rasmi)
-       const menuData = {
-            "🍕 PITSA": [
-                {id: "p1", name: "Pizza Pepperoni", price: 70000, img: "https://otash2002.github.io/prezto_pizza_bot/img/peperonni.png"},
-                {id: "p2", name: "Pizza Pollo", price: 75000, img: "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=300"},
-                {id: "p3", name: "Pizza Vetchina", price: 75000, img: "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=300"},
-                {id: "p4", name: "Pizza Carnoso", price: 85000, img: "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=300"},
-                {id: "p5", name: "Pizza 4 Type", price: 90000, img: "https://images.unsplash.com/photo-1571997478779-2adcbbe9ab2f?w=300"},
-                {id: "p6", name: "Presto Pizza", price: 100000, img: "https://images.unsplash.com/photo-1595854341625-f33ee10dbf94?w=300"}
-            ],
-            "🌭 HOT-DOG": [
-                {id: "h1", name: "Hot-Dog Oddiy", price: 10000, img: "https://images.unsplash.com/photo-1612392062798-2df39a2d7ec0?w=300"},
-                {id: "h2", name: "Hot-Dog Canada", price: 13000, img: "https://images.unsplash.com/photo-1619740455993-32e7e1f9b5eb?w=300"},
-                {id: "h3", name: "Hot-Dog Canada 2x", price: 15000, img: "https://images.unsplash.com/photo-1590017933406-b5859d03c1b9?w=300"},
-                {id: "h4", name: "Chicken Hot-Dog", price: 18000, img: "https://images.unsplash.com/photo-1568254183919-78a4f43a2877?w=300"},
-                {id: "h5", name: "Go'shtli Hot-Dog", price: 20000, img: "https://images.unsplash.com/photo-1504754524776-8f4f37790ca0?w=300"}
-            ],
-            "🥪 SANDWICH": [
-                {id: "s1", name: "Sandwich Indeyka", price: 35000, img: "https://images.unsplash.com/photo-1528735602780-2552fd46c7af?w=300"},
-                {id: "s2", name: "Sandwich Carnoso", price: 40000, img: "https://images.unsplash.com/photo-1619096252214-ef06c45683e3?w=300"},
-                {id: "s3", name: "Sandwich Pollo", price: 35000, img: "https://images.unsplash.com/photo-1509722747041-616f39b57569?w=300"}
-            ],
-            "🥙 LAVASH": [
-                {id: "l1", name: "Lavash", price: 25000, img: "https://otash2002.github.io/prezto_pizza_bot/img/donar.png"},
-                {id: "l2", name: "Lavash Sirli", price: 30000, img: "https://otash2002.github.io/prezto_pizza_bot/img/donarr.png"},
-                {id: "l3", name: "Tandir Lavash", price: 35000, img: "https://images.unsplash.com/photo-1619096252214-ef06c45683e3?w=300"},
-                {id: "l4", name: "Tandir Lavash Sirli", price: 40000, img: "https://images.unsplash.com/photo-1509722747041-616f39b57569?w=300"}
-            ],
-            "🍔 BURGER": [
-                {id: "b1", name: "Burger Oddiy", price: 15000, img: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=300"},
-                {id: "b2", name: "Chizburger", price: 17000, img: "https://images.unsplash.com/photo-1586190848861-99aa4a171e90?w=300"},
-                {id: "b3", name: "Chicken Burger", price: 20000, img: "https://images.unsplash.com/photo-1606755962773-d324e0a13086?w=300"},
-                {id: "b4", name: "Double Burger", price: 25000, img: "https://images.unsplash.com/photo-1550547660-d9450f859349?w=300"}
-            ],
-            "🥤 ICHIMLIKLAR": [
-                {id: "i1", name: "Choy", price: 5000, img: "https://images.unsplash.com/photo-1544787218-421bbd74a003?w=300"},
-                {id: "i2", name: "Limonli Choy", price: 15000, img: "https://images.unsplash.com/photo-1564890369478-c89ca6d9cde9?w=300"},
-                {id: "i3", name: "Kofe Cappuchino", price: 5000, img: "https://images.unsplash.com/photo-1572442388796-11668a67e53d?w=300"}
-            ]
-        };
+      const menuData = {
+    "🍕 PITSA": [
+        {id: "p1", name: "Pizza Pepperoni", price: 70000, img: "https://otash2002.github.io/prezto_pizza_bot/img/peperonni.png"},
+        {id: "p2", name: "Pizza Pollo", price: 75000, img: "https://otash2002.github.io/prezto_pizza_bot/img/pollo.png"},
+        {id: "p3", name: "Pizza Vetchina", price: 75000, img: "https://images.unsplash.com/photo-1593504049359-74330189a355?w=500&auto=format&fit=crop"},
+        {id: "p4", name: "Pizza Carnoso", price: 85000, img: "https://otash2002.github.io/prezto_pizza_bot/img/pitsagosht.png"},
+        {id: "p5", name: "Pizza 4 Type", price: 90000, img: "https://otash2002.github.io/prezto_pizza_bot/img/PITSA4.png"},
+        {id: "p6", name: "Presto Pizza", price: 100000, img: "https://otash2002.github.io/prezto_pizza_bot/img/presto.png"}
+    ],
+    "🌭 HOT-DOG": [
+        {id: "h1", name: "Hot-Dog Oddiy", price: 10000, img: "https://images.unsplash.com/photo-1541214113241-21578d2d9b62?w=500&auto=format&fit=crop"},
+        {id: "h2", name: "Hot-Dog Canada", price: 13000, img: "https://images.unsplash.com/photo-1612392062798-2df39a2d7ec0?w=500&auto=format&fit=crop"},
+        {id: "h3", name: "Hot-Dog Canada 2x", price: 15000, img: "https://images.unsplash.com/photo-1594212699903-ec8a3ecc50f1?w=500&auto=format&fit=crop"},
+        {id: "h4", name: "Chicken Hot-Dog", price: 18000, img: "https://images.unsplash.com/photo-1619740455993-32e7e1f9b5eb?w=500&auto=format&fit=crop"},
+        {id: "h5", name: "Go'shtli Hot-Dog", price: 20000, img: "https://images.unsplash.com/photo-1504754524776-8f4f37790ca0?w=500&auto=format&fit=crop"}
+    ],
+    "🥪 SANDWICH": [
+        {id: "s1", name: "Sandwich Indeyka", price: 35000, img: "https://images.unsplash.com/photo-1528735602780-2552fd46c7af?w=500&auto=format&fit=crop"},
+        {id: "s2", name: "Sandwich Carnoso", price: 40000, img: "https://images.unsplash.com/photo-1550507992-eb63ffee0847?w=500&auto=format&fit=crop"},
+        {id: "s3", name: "Sandwich Pollo", price: 35000, img: "https://images.unsplash.com/photo-1567234665766-cd14615702f7?w=500&auto=format&fit=crop"}
+    ],
+    "🥙 LAVASH & DONER": [
+        {id: "l1", name: "Lavash", price: 25000, img: "https://otash2002.github.io/prezto_pizza_bot/img/donar.png"},
+        {id: "l2", name: "Lavash Sirli", price: 30000, img: "https://otash2002.github.io/prezto_pizza_bot/img/donarr.png"},
+        {id: "d1", name: "Doner", price: 25000, img: "https://images.unsplash.com/photo-1529006557810-274b9b2fc783?w=500&auto=format&fit=crop"},
+        {id: "f1", name: "Free", price: 18000, img: "https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=500&auto=format&fit=crop"}
+    ],
+    "🍔 BURGER": [
+        {id: "b1", name: "Burger Oddiy", price: 15000, img: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500&auto=format&fit=crop"},
+        {id: "b2", name: "Chizburger", price: 17000, img: "https://images.unsplash.com/photo-1586190848861-99aa4a171e90?w=500&auto=format&fit=crop"},
+        {id: "b3", name: "Chicken Burger", price: 20000, img: "https://images.unsplash.com/photo-1606755962773-d324e0a13086?w=500&auto=format&fit=crop"},
+        {id: "b4", name: "Double Burger", price: 25000, img: "https://images.unsplash.com/photo-1550547660-d9450f859349?w=500&auto=format&fit=crop"}
+    ],
+    "🥤 ICHIMLIKLAR": [
+        {id: "i1", name: "Choy", price: 5000, img: "https://images.unsplash.com/photo-1544787218-421bbd74a003?w=500&auto=format&fit=crop"},
+        {id: "i2", name: "Limonli Choy", price: 15000, img: "https://images.unsplash.com/photo-1564890369478-c89ca6d9cde9?w=500&auto=format&fit=crop"},
+        {id: "i3", name: "Kofe Cappuchino", price: 5000, img: "https://images.unsplash.com/photo-1572442388796-11668a67e53d?w=500&auto=format&fit=crop"},
+        {id: "i4", name: "Kofe 3v1", price: 3000, img: "https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=500&auto=format&fit=crop"}
+    ]
+};
         function render() {
             const list = document.getElementById('menu-list');
             list.innerHTML = '';
