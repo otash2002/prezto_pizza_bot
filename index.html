@@ -7,30 +7,188 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        :root { --main: #ffcc00; --bg: #000; --card: #fff; --text: #000; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; padding: 0 12px 140px 12px; overflow-x: hidden; }
-        .header { position: sticky; top: 0; background: var(--bg); padding: 15px 0; z-index: 100; border-bottom: 2px solid var(--main); margin-bottom: 20px; }
-        .header h1 { color: var(--main); font-size: 24px; text-align: center; text-transform: uppercase; }
-        .category-title { color: var(--main); margin: 25px 0 15px; border-left: 4px solid var(--main); padding-left: 12px; text-transform: uppercase; font-weight: bold; font-size: 18px; }
-        .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
-        .card { background: var(--card); border-radius: 16px; padding: 12px; color: var(--text); display: flex; flex-direction: column; justify-content: space-between; min-height: 240px; box-shadow: 0 4px 15px rgba(255, 204, 0, 0.2); }
+        :root { 
+            --main: #ffcc00; 
+            --bg: #0a0a0a; 
+            --card: #fff; 
+            --text: #000; 
+            --shadow: rgba(255, 204, 0, 0.3);
+        }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+            color: white; 
+            padding: 0 15px 160px 15px; 
+            overflow-x: hidden; 
+        }
         
-        /* Rasm va Emoji uchun universal box */
-        .product-media { width: 100%; height: 110px; display: flex; align-items: center; justify-content: center; margin-bottom: 8px; border-radius: 10px; overflow: hidden; }
-        .product-media img { width: 100%; height: 100%; object-fit: cover; }
-        .product-media.emoji { font-size: 45px; }
-
-        .product-name { font-weight: 700; font-size: 14px; margin: 5px 0; min-height: 35px; display: flex; align-items: center; }
-        .product-price { color: #d35400; font-weight: bold; font-size: 14px; margin-bottom: 10px; }
-        .controls { display: flex; align-items: center; justify-content: space-between; background: #f5f5f5; border-radius: 12px; padding: 4px; }
-        .btn { border: none; width: 34px; height: 34px; border-radius: 10px; font-size: 20px; background: var(--main); font-weight: bold; display: flex; align-items: center; justify-content: center; cursor: pointer; }
-        .count { font-weight: bold; font-size: 16px; color: var(--text); }
-        .loading { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); color: var(--main); }
-        .card.has-items { border: 2px solid var(--main); }
+        /* Header */
+        .header { 
+            position: sticky; 
+            top: 0; 
+            background: linear-gradient(180deg, rgba(10,10,10,0.98) 0%, rgba(10,10,10,0.95) 100%);
+            backdrop-filter: blur(10px);
+            padding: 20px 0; 
+            z-index: 100; 
+            border-bottom: 3px solid var(--main); 
+            margin-bottom: 25px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+        }
+        .header h1 { 
+            color: var(--main); 
+            font-size: 28px; 
+            text-align: center; 
+            text-transform: uppercase; 
+            letter-spacing: 2px;
+            text-shadow: 2px 2px 8px rgba(255, 204, 0, 0.4);
+        }
+        
+        /* Category */
+        .category-title { 
+            color: var(--main); 
+            margin: 30px 0 20px; 
+            border-left: 5px solid var(--main); 
+            padding-left: 15px; 
+            text-transform: uppercase; 
+            font-weight: 900; 
+            font-size: 20px;
+            letter-spacing: 1px;
+            text-shadow: 1px 1px 5px rgba(255, 204, 0, 0.3);
+        }
+        
+        /* Grid */
+        .grid { 
+            display: grid; 
+            grid-template-columns: repeat(2, 1fr); 
+            gap: 15px; 
+            margin-bottom: 20px;
+        }
+        
+        /* Card */
+        .card { 
+            background: var(--card); 
+            border-radius: 20px; 
+            padding: 0;
+            color: var(--text); 
+            display: flex; 
+            flex-direction: column;
+            min-height: 280px;
+            box-shadow: 0 8px 25px var(--shadow);
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+        .card:active {
+            transform: scale(0.98);
+        }
+        .card.has-items { 
+            border: 3px solid var(--main);
+            box-shadow: 0 0 30px var(--shadow);
+        }
+        
+        /* Image Container */
+        .product-media { 
+            width: 100%; 
+            height: 140px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%);
+            overflow: hidden;
+            position: relative;
+        }
+        .product-media::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.1) 100%);
+        }
+        .product-media img { 
+            width: 100%; 
+            height: 100%; 
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+        .card:active .product-media img {
+            transform: scale(1.05);
+        }
+        
+        /* Product Info */
+        .product-info {
+            padding: 12px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .product-name { 
+            font-weight: 700; 
+            font-size: 15px; 
+            margin-bottom: 8px;
+            line-height: 1.3;
+            color: #1a1a1a;
+        }
+        .product-price { 
+            color: #e74c3c; 
+            font-weight: 900; 
+            font-size: 16px; 
+            margin-bottom: 12px;
+            text-shadow: 0 1px 2px rgba(231, 76, 60, 0.2);
+        }
+        
+        /* Controls */
+        .controls { 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+            background: linear-gradient(135deg, #f8f8f8 0%, #f0f0f0 100%);
+            border-radius: 15px; 
+            padding: 6px;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .btn { 
+            border: none; 
+            width: 38px; 
+            height: 38px; 
+            border-radius: 12px; 
+            font-size: 22px; 
+            background: linear-gradient(135deg, var(--main) 0%, #ffd633 100%);
+            font-weight: bold; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            cursor: pointer;
+            box-shadow: 0 3px 10px rgba(255, 204, 0, 0.4);
+            transition: all 0.2s ease;
+        }
+        .btn:active {
+            transform: scale(0.9);
+            box-shadow: 0 1px 5px rgba(255, 204, 0, 0.3);
+        }
+        .count { 
+            font-weight: 900; 
+            font-size: 18px; 
+            color: var(--text);
+            min-width: 30px;
+            text-align: center;
+        }
+        
+        /* Loading */
+        .loading { 
+            position: fixed; 
+            top: 50%; 
+            left: 50%; 
+            transform: translate(-50%, -50%); 
+            color: var(--main);
+            font-size: 24px;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
-    <div class="header"><h1>🍕 Presto Pizza</h1></div>
+    <div class="header"><h1>🍕 PRESTO PIZZA</h1></div>
     <div id="menu-list"><div class="loading">⏳ Yuklanmoqda...</div></div>
 
     <script>
@@ -40,40 +198,40 @@
         
         let cart = {};
 
-        // Sening hamma mahsulotlaring (Donar rasmi bilan)
+        // MAHSULOTLAR (har biriga o'z rasmi)
         const menuData = {
-            "PIZZA": [
-                {id: "p1", name: "Pepperoni", price: 70000, img: "🍕"},
-                {id: "p2", name: "Pollo", price: 75000, img: "🍕"},
-                {id: "p3", name: "Vetchina", price: 75000, img: "🍕"},
-                {id: "p4", name: "Carnoso", price: 85000, img: "🍕"},
-                {id: "p5", name: "4 Type", price: 90000, img: "🍕"},
-                {id: "p6", name: "Presto Pizza", price: 100000, img: "🍕"}
+            "🍕 PIZZA": [
+                {id: "p1", name: "Pepperoni Pizza", price: 70000, img: "https://images.unsplash.com/photo-1628840042765-356cda07504e?w=400&h=300&fit=crop"},
+                {id: "p2", name: "Pollo Pizza", price: 75000, img: "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=400&h=300&fit=crop"},
+                {id: "p3", name: "Vetchina Pizza", price: 75000, img: "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=400&h=300&fit=crop"},
+                {id: "p4", name: "Carnoso Pizza", price: 85000, img: "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&h=300&fit=crop"},
+                {id: "p5", name: "4 Type Pizza", price: 90000, img: "https://images.unsplash.com/photo-1571997478779-2adcbbe9ab2f?w=400&h=300&fit=crop"},
+                {id: "p6", name: "Presto Pizza", price: 100000, img: "https://images.unsplash.com/photo-1595854341625-f33ee10dbf94?w=400&h=300&fit=crop"}
             ],
-            "HOT-DOG": [
-                {id: "h1", name: "Oddiy Hot-dog", price: 10000, img: "🌭"},
-                {id: "h2", name: "Canada", price: 13000, img: "🌭"},
-                {id: "h3", name: "Canada 2x", price: 15000, img: "🌭"},
-                {id: "h4", name: "Chicken Hot-dog", price: 18000, img: "🌭"},
-                {id: "h5", name: "Go'shtli Hot-dog", price: 20000, img: "🌭"},
-                {id: "h6", name: "Qazili Hot-dog", price: 25000, img: "🌭"}
+            "🌭 HOT-DOG": [
+                {id: "h1", name: "Oddiy Hot-dog", price: 10000, img: "https://images.unsplash.com/photo-1612392062798-2df39a2d7ec0?w=400&h=300&fit=crop"},
+                {id: "h2", name: "Canada Hot-dog", price: 13000, img: "https://images.unsplash.com/photo-1619740455993-32e7e1f9b5eb?w=400&h=300&fit=crop"},
+                {id: "h3", name: "Canada 2x", price: 15000, img: "https://images.unsplash.com/photo-1590017933406-b5859d03c1b9?w=400&h=300&fit=crop"},
+                {id: "h4", name: "Chicken Hot-dog", price: 18000, img: "https://images.unsplash.com/photo-1568254183919-78a4f43a2877?w=400&h=300&fit=crop"},
+                {id: "h5", name: "Go'shtli Hot-dog", price: 20000, img: "https://images.unsplash.com/photo-1504754524776-8f4f37790ca0?w=400&h=300&fit=crop"},
+                {id: "h6", name: "Qazili Hot-dog", price: 25000, img: "https://images.unsplash.com/photo-1599599810769-bcde5a160d32?w=400&h=300&fit=crop"}
             ],
-            "SANDWICH": [
-                {id: "s1", name: "Indeyka", price: 30000, img: "🥪"},
-                {id: "s2", name: "Carnoso", price: 35000, img: "🥪"},
-                {id: "s3", name: "Pollo", price: 30000, img: "🥪"}
+            "🥪 SANDWICH": [
+                {id: "s1", name: "Sandwich Indeyka", price: 30000, img: "https://images.unsplash.com/photo-1528735602780-2552fd46c7af?w=400&h=300&fit=crop"},
+                {id: "s2", name: "Sandwich Carnoso", price: 35000, img: "https://images.unsplash.com/photo-1619096252214-ef06c45683e3?w=400&h=300&fit=crop"},
+                {id: "s3", name: "Sandwich Pollo", price: 30000, img: "https://images.unsplash.com/photo-1509722747041-616f39b57569?w=400&h=300&fit=crop"}
             ],
-            "BURGER": [
-                {id: "b1", name: "Burger Oddiy", price: 15000, img: "🍔"},
-                {id: "b2", name: "Chizburger", price: 17000, img: "🍔"},
-                {id: "b3", name: "Chicken Burger", price: 20000, img: "🍔"},
-                {id: "b4", name: "BBQ Burger", price: 25000, img: "🍔"}
+            "🍔 BURGER": [
+                {id: "b1", name: "Burger Oddiy", price: 15000, img: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&h=300&fit=crop"},
+                {id: "b2", name: "Chizburger", price: 17000, img: "https://images.unsplash.com/photo-1586190848861-99aa4a171e90?w=400&h=300&fit=crop"},
+                {id: "b3", name: "Chicken Burger", price: 20000, img: "https://images.unsplash.com/photo-1606755962773-d324e0a13086?w=400&h=300&fit=crop"},
+                {id: "b4", name: "BBQ Burger", price: 25000, img: "https://images.unsplash.com/photo-1550547660-d9450f859349?w=400&h=300&fit=crop"}
             ],
-            "DONER": [
-                {id: "d1", name: "Donar", price: 25000, img: "https://otash2002.github.io/prezto_pizza_bot/img/donar.png"},
-                {id: "d2", name: "Non Kabob", price: 35000, img: "🥙"},
-                {id: "d3", name: "KFC 1 porsiya", price: 25000, img: "🍗"},
-                {id: "d4", name: "Free", price: 15000, img: "🍟"}
+            "🥙 DONER & BOSHQALAR": [
+                {id: "d1", name: "Donar", price: 25000, img: "https://images.unsplash.com/photo-1529006557810-274b9b2fc783?w=400&h=300&fit=crop"},
+                {id: "d2", name: "Non Kabob", price: 35000, img: "https://images.unsplash.com/photo-1599487488170-d11ec9c172f0?w=400&h=300&fit=crop"},
+                {id: "d3", name: "KFC 1 porsiya", price: 25000, img: "https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?w=400&h=300&fit=crop"},
+                {id: "d4", name: "Free", price: 15000, img: "https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=400&h=300&fit=crop"}
             ]
         };
 
@@ -83,7 +241,7 @@
             for (let category in menuData) {
                 const title = document.createElement('div');
                 title.className = 'category-title';
-                title.textContent = `| ${category}`;
+                title.textContent = category;
                 list.appendChild(title);
                 const grid = document.createElement('div');
                 grid.className = 'grid';
@@ -98,20 +256,21 @@
             const card = document.createElement('div');
             card.className = 'card';
             card.id = `card-${product.id}`;
-            
-            const isLink = product.img.startsWith('http');
-            const mediaHTML = isLink 
-                ? `<div class="product-media"><img src="${product.img}"></div>` 
-                : `<div class="product-media emoji">${product.img}</div>`;
 
             card.innerHTML = `
-                ${mediaHTML}
-                <div class="product-name">${product.name}</div>
-                <div class="product-price">${product.price.toLocaleString()} UZS</div>
-                <div class="controls">
-                    <button class="btn" onclick="updateCount('${product.id}', '${product.name}', ${product.price}, -1)">-</button>
-                    <span class="count" id="q-${product.id}">0</span>
-                    <button class="btn" onclick="updateCount('${product.id}', '${product.name}', ${product.price}, 1)">+</button>
+                <div class="product-media">
+                    <img src="${product.img}" alt="${product.name}" loading="lazy">
+                </div>
+                <div class="product-info">
+                    <div>
+                        <div class="product-name">${product.name}</div>
+                        <div class="product-price">${product.price.toLocaleString()} UZS</div>
+                    </div>
+                    <div class="controls">
+                        <button class="btn" onclick="updateCount('${product.id}', '${product.name}', ${product.price}, -1)">−</button>
+                        <span class="count" id="q-${product.id}">0</span>
+                        <button class="btn" onclick="updateCount('${product.id}', '${product.name}', ${product.price}, 1)">+</button>
+                    </div>
                 </div>
             `;
             return card;
@@ -131,11 +290,16 @@
 
         function calculateTotal() {
             let total = 0, count = 0;
-            for (let k in cart) { total += cart[k].price * cart[k].quantity; count += cart[k].quantity; }
+            for (let k in cart) { 
+                total += cart[k].price * cart[k].quantity; 
+                count += cart[k].quantity; 
+            }
             if (total > 0) {
-                tg.MainButton.setText(`BUYURTMA BERISH: ${total.toLocaleString()} UZS (${count} ta)`);
+                tg.MainButton.setText(`🛒 BUYURTMA BERISH: ${total.toLocaleString()} UZS (${count} ta)`);
                 tg.MainButton.show();
-            } else tg.MainButton.hide();
+            } else {
+                tg.MainButton.hide();
+            }
         }
 
         tg.onEvent('mainButtonClicked', () => {
@@ -143,7 +307,14 @@
             tg.sendData(JSON.stringify(order));
         });
 
-        window.onload = () => { render(); tg.ready(); setTimeout(() => document.querySelector('.loading')?.remove(), 500); };
+        window.onload = () => { 
+            render(); 
+            tg.ready(); 
+            setTimeout(() => {
+                const loading = document.querySelector('.loading');
+                if(loading) loading.remove();
+            }, 300); 
+        };
     </script>
 </body>
 </html>
