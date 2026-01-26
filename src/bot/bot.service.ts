@@ -18,7 +18,7 @@ type MyContext = Context & SessionFlavor<SessionData>;
 export class BotService implements OnModuleInit, OnModuleDestroy {
   private bot: Bot<MyContext>;
   private readonly ADMIN_ID: string;
-  private readonly WEB_APP_URL = "https://SIZNING_USERNAME.github.io/fastfood-bot-menu/";
+  private readonly WEB_APP_URL = "https://otash2002.github.io/prezto_pizza_bot/";
 
   constructor(private prisma: PrismaService) {
     // Environment tekshirish
