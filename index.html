@@ -239,7 +239,7 @@
         function render() {
             const list = document.getElementById('menu-list');
             list.innerHTML = '';
-            for (let category in menuData) {
+            for (let category in menuData) {    
                 const title = document.createElement('div');
                 title.className = 'category-title';
                 title.textContent = category;
